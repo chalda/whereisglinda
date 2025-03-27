@@ -1,0 +1,15 @@
+{
+    "folders": [
+        {
+            "path": "."
+        },
+        {
+            "path": "../chalda/react-native-web-maps"
+        }
+    ],
+    "settings": {
+        "files.exclude": {
+            "frontend/.expo": true
+        }
+    }
+}

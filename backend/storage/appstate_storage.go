@@ -20,6 +20,29 @@ func UpdateAppState(state models.AppState) error {
     return nil
 }
 
+// UpdateRideStatus updates only the ride status in the database
+func UpdateRideStatus(rideStatus string) error {
+    _, err := DB.Exec("UPDATE app_state SET ride_status = ? WHERE id = 1", rideStatus)
+    if err != nil {
+        return fmt.Errorf("failed to update ride status: %w", err)
+    }
+    return nil
+}
+
+// UpdateHomeGeobox updates only the home geobox in the database
+func UpdateHomeGeobox(homeGeobox [4]models.Location) error {
+    homeGeoboxJSON, err := json.Marshal(homeGeobox)
+    if err != nil {
+        return fmt.Errorf("failed to marshal home geobox: %w", err)
+    }
+
+    _, err = DB.Exec("UPDATE app_state SET home_geobox = ? WHERE id = 1", string(homeGeoboxJSON))
+    if err != nil {
+        return fmt.Errorf("failed to update home geobox: %w", err)
+    }
+    return nil
+}
+
 // GetAppState retrieves the app state from the database
 func GetAppState() (models.AppState, error) {
     var state models.AppState

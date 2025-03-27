@@ -1,26 +1,26 @@
 import React from 'react';
 import { StyleSheet, View, Platform } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE, MapViewProps } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE, MapViewProps, Polyline } from 'react-native-maps';
 import Constants from 'expo-constants';
 
-type MarkerProps = {
+type LocationProps = {
   id: string;
   latitude: number;
   longitude: number;
 };
 
 type MapContentProps = {
-  markers: MarkerProps[];
+  locations: LocationProps[]; // Updated to use locations instead of markers
 };
 
 const googleMapsApiKey = Constants.expoConfig.extra?.googleMapsApiKey;
 
-const MapContent: React.FC<MapContentProps> = ({ markers }) => {
+const MapContent: React.FC<MapContentProps> = ({ locations }) => {
   const initialRegion: MapViewProps['region'] = {
-    latitude: 37.7749, // Default latitude (e.g., San Francisco)
-    longitude: -122.4194, // Default longitude
-    latitudeDelta: 0.1,
-    longitudeDelta: 0.1,
+    latitude: 40.6782, // Latitude for Brooklyn, NY
+    longitude: -73.9442, // Longitude for Brooklyn, NY
+    latitudeDelta: 0.05, // Zoom level for latitude
+    longitudeDelta: 0.05, // Zoom level for longitude
   };
 
   return (
@@ -31,13 +31,15 @@ const MapContent: React.FC<MapContentProps> = ({ markers }) => {
         initialRegion={initialRegion}
         {...(Platform.OS === 'web' && { googleMapsApiKey })} // Pass API key for web
       >
-        {markers.map((marker) => (
-          <Marker
-            key={marker.id}
-            coordinate={{ latitude: marker.latitude, longitude: marker.longitude }}
-            title={`Marker ${marker.id}`}
-          />
-        ))}
+        {/* Render the route as a Polyline */}
+        <Polyline
+          coordinates={locations.map((location) => ({
+            latitude: location.latitude,
+            longitude: location.longitude,
+          }))}
+          strokeColor="#FF0000" // Red color for the route
+          strokeWidth={4} // Width of the route line
+        />
       </MapView>
     </View>
   );
@@ -53,32 +55,3 @@ const styles = StyleSheet.create({
 });
 
 export default MapContent;
-
-// const { width, height } = Dimensions.get('window');
-// const ASPECT_RATIO = width / height;
-// const LATITUDE = 37.78825;
-// const LONGITUDE = -122.4324;
-// const LATITUDE_DELTA = 0.0922;
-// const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
-
-// const region = {
-//   latitude: LATITUDE,
-//   longitude: LONGITUDE,
-//   latitudeDelta: LATITUDE_DELTA,
-//   longitudeDelta: LONGITUDE_DELTA,
-// };
-
-// export const MapContent = () => {
-//   const [map, setMap] = React.useState(null);
-
-//   const onLoad = React.useCallback((m) => {
-//     const bounds = new window.google.maps.LatLngBounds({ lat: LATITUDE, lng: LONGITUDE });
-//     m.fitBounds(bounds);
-//     //   mapref.current.map = map;
-
-//     setMap(m);
-//   }, []);
-
-//   const onUnmount = React.useCallback(() => {
-//     setMap(null);
-//   }, []);

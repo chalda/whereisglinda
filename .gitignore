@@ -15,7 +15,7 @@ scaffold.sh
 
 ios
 android
-
+.code-workspace
 
 .vscode/
 .idea/

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Platform } from 'react-native';
-import MapContent from '../MapContent'; // Assuming MapContent is the map component
+import MapContent from './MapContent'; // Assuming MapContent is the map component
 
 type Marker = {
   id: string;

@@ -42,3 +42,41 @@ func SetAppState(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
     fmt.Fprintln(w, "App state updated successfully")
 }
+
+func SetRideStatus(w http.ResponseWriter, r *http.Request) {
+    var request struct {
+        RideStatus string `json:"rideStatus"`
+    }
+
+    if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+        http.Error(w, "Invalid request payload", http.StatusBadRequest)
+        return
+    }
+
+    if err := storage.UpdateRideStatus(request.RideStatus); err != nil {
+        http.Error(w, "Failed to update ride status", http.StatusInternalServerError)
+        return
+    }
+
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprintln(w, "Ride status updated successfully")
+}
+
+func SetHomeGeobox(w http.ResponseWriter, r *http.Request) {
+    var request struct {
+        HomeGeobox [4]models.Location `json:"homeGeobox"`
+    }
+
+    if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+        http.Error(w, "Invalid request payload", http.StatusBadRequest)
+        return
+    }
+
+    if err := storage.UpdateHomeGeobox(request.HomeGeobox); err != nil {
+        http.Error(w, "Failed to update home geobox", http.StatusInternalServerError)
+        return
+    }
+
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprintln(w, "Home geobox updated successfully")
+}
