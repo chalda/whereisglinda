@@ -1,8 +1,8 @@
 {
     "info": {
-        "name": "WhereIsGlinda Backend (Updated)",
+        "name": "WhereIsGlinda Backend with Auth",
         "_postman_id": "12345678-1234-1234-1234-123456789abc",
-        "description": "Updated Postman collection for the WhereIsGlinda backend API.",
+        "description": "Postman collection for the WhereIsGlinda backend API with API key-based authorization.",
         "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
     "item": [
@@ -11,6 +11,10 @@
             "request": {
                 "method": "POST",
                 "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "bus-key"
+                    },
                     {
                         "key": "Content-Type",
                         "value": "application/json"
@@ -49,7 +53,12 @@
             "name": "Get App State",
             "request": {
                 "method": "GET",
-                "header": [],
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "driver-key"
+                    }
+                ],
                 "url": {
                     "raw": "http://localhost:8080/state",
                     "protocol": "http",
@@ -65,6 +74,10 @@
             "request": {
                 "method": "POST",
                 "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "driver-key"
+                    },
                     {
                         "key": "Content-Type",
                         "value": "application/json"
@@ -90,6 +103,10 @@
                 "method": "POST",
                 "header": [
                     {
+                        "key": "Authorization",
+                        "value": "driver-key"
+                    },
+                    {
                         "key": "Content-Type",
                         "value": "application/json"
                     }
@@ -104,6 +121,30 @@
                     "host": ["localhost"],
                     "port": "8080",
                     "path": ["trip"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Validate Key",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"apiKey\": \"driver-key\"\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:8080/validate-key",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["validate-key"]
                 }
             },
             "response": []
