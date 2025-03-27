@@ -3,11 +3,11 @@ package storage
 import (
     "encoding/json"
     "fmt"
-    "whereisglinda-backend/handlers"
+    "whereisglinda-backend/models"
 )
 
 // UpdateAppState updates the app state in the database
-func UpdateAppState(state handlers.AppState) error {
+func UpdateAppState(state models.AppState) error {
     homeGeoboxJSON, err := json.Marshal(state.HomeGeobox)
     if err != nil {
         return fmt.Errorf("failed to marshal home geobox: %w", err)
@@ -21,8 +21,8 @@ func UpdateAppState(state handlers.AppState) error {
 }
 
 // GetAppState retrieves the app state from the database
-func GetAppState() (handlers.AppState, error) {
-    var state handlers.AppState
+func GetAppState() (models.AppState, error) {
+    var state models.AppState
     var homeGeoboxJSON string
 
     row := DB.QueryRow("SELECT ride_status, home_geobox FROM app_state WHERE id = 1")

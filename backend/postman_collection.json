@@ -1,0 +1,112 @@
+{
+    "info": {
+        "name": "WhereIsGlinda Backend (Updated)",
+        "_postman_id": "12345678-1234-1234-1234-123456789abc",
+        "description": "Updated Postman collection for the WhereIsGlinda backend API.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Add Location",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"latitude\": 37.7749,\n  \"longitude\": -122.4194,\n  \"tripID\": 42\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:8080/locations",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["locations"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Subscribe to Location Updates",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:8080/subscribe",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["subscribe"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get App State",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:8080/state",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["state"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Set App State",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"rideStatus\": \"Riding\",\n  \"homeGeobox\": [\n    { \"latitude\": 37.7749, \"longitude\": -122.4194 },\n    { \"latitude\": 34.0522, \"longitude\": -118.2437 },\n    { \"latitude\": 40.7128, \"longitude\": -74.0060 },\n    { \"latitude\": 51.5074, \"longitude\": -0.1278 }\n  ]\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:8080/state",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["state"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Set Trip ID",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"tripID\": 42\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:8080/trip",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["trip"]
+                }
+            },
+            "response": []
+        }
+    ]
+}

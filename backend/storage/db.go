@@ -22,9 +22,11 @@ func InitDB() {
 }
 
 func createTables() {
+    // Create locations table
     _, err := DB.Exec(`
         CREATE TABLE IF NOT EXISTS locations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tripID INTEGER NOT NULL,
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -32,6 +34,26 @@ func createTables() {
     `)
     if err != nil {
         log.Fatalf("Failed to create locations table: %v", err)
+    }
+
+    // Create trips table to manage the current trip ID
+    _, err = DB.Exec(`
+        CREATE TABLE IF NOT EXISTS trips (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            currentTripID INTEGER NOT NULL DEFAULT 1
+        )
+    `)
+    if err != nil {
+        log.Fatalf("Failed to create trips table: %v", err)
+    }
+
+    // Insert default trip ID if not exists
+    _, err = DB.Exec(`
+        INSERT OR IGNORE INTO trips (id, currentTripID)
+        VALUES (1, 1)
+    `)
+    if err != nil {
+        log.Fatalf("Failed to insert default trip ID: %v", err)
     }
 
     _, err = DB.Exec(`

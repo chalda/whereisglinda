@@ -5,23 +5,25 @@ import (
     "fmt"
     "net/http"
     "sync"
+    "whereisglinda-backend/models"
     "whereisglinda-backend/storage"
 )
 
-type Location struct {
-    Latitude  float64 `json:"latitude"`
-    Longitude float64 `json:"longitude"`
-}
-
 var (
-    locations   []Location
+    locations   []models.Location
     locationsMu sync.Mutex
 )
 
 func AddLocation(w http.ResponseWriter, r *http.Request) {
-    var location Location
+    var location models.Location
     if err := json.NewDecoder(r.Body).Decode(&location); err != nil {
         http.Error(w, "Invalid request payload", http.StatusBadRequest)
+        return
+    }
+
+    // Validate that tripID is provided
+    if location.TripID == 0 {
+        http.Error(w, "tripID is required", http.StatusBadRequest)
         return
     }
 
@@ -38,5 +40,31 @@ func AddLocation(w http.ResponseWriter, r *http.Request) {
     }()
 
     w.WriteHeader(http.StatusCreated)
-    fmt.Fprintln(w, "Location added successfully")
+    json.NewEncoder(w).Encode(location) // Respond with the saved location including tripID
+}
+
+func SetTrip(w http.ResponseWriter, r *http.Request) {
+    var request struct {
+        TripID int `json:"tripID"`
+    }
+
+    if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+        http.Error(w, "Invalid request payload", http.StatusBadRequest)
+        return
+    }
+
+    // Validate that tripID is provided
+    if request.TripID == 0 {
+        http.Error(w, "tripID is required", http.StatusBadRequest)
+        return
+    }
+
+    // Update the current trip ID in the database
+    if err := storage.SetCurrentTripID(request.TripID); err != nil {
+        http.Error(w, "Failed to set trip ID", http.StatusInternalServerError)
+        return
+    }
+
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprintln(w, "Trip ID set successfully")
 }
