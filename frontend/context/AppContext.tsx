@@ -1,44 +1,47 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { apiFetch } from '../utils/api';
+import { AppState, Location, UserRole } from '../types';
+import useSubscribe from '../utils/useSubscribe'; // Corrected import path for useSubscribe
 
-export const AppContext = createContext();
+export interface AppContextProps {
+  apiKey: string;
+  setApiKey: (key: string) => void;
+  userRole: UserRole;
+  setUserRole: (role: UserRole) => void;
+  appState: AppState | null;
+  setAppState: (state: AppState) => void;
+  locations: Location[];
+  setLocations: (locations: Location[]) => void;
+}
 
-export const AppProvider = ({ children }) => {
-  const [apiKey, setApiKey] = useState(''); // Store API key globally
-  const [userRole, setUserRole] = useState('');
-  const [appState, setAppState] = useState({ rideStatus: '', homeGeobox: [] });
-  const [locations, setLocations] = useState([]); // Store location data globally
+export const AppContext = createContext<AppContextProps>({} as AppContextProps);
 
-  // Fetch app state and locations from the backend
-  const fetchAppStateAndLocations = async () => {
-    try {
-      // Fetch app state
-      const appStateResponse = await fetch('http://localhost:8080/state', {
-        headers: { Authorization: apiKey },
-      });
-      if (appStateResponse.ok) {
-        const appStateData = await appStateResponse.json();
-        setAppState(appStateData);
-      }
+export const AppProvider: React.FC = ({ children }) => {
+  const [apiKey, setApiKey] = useState<string>('');
+  const [userRole, setUserRole] = useState<UserRole>(null);
+  const [appState, setAppState] = useState<AppState | null>(null);
+  const [locations, setLocations] = useState<Location[]>([]);
 
-      // Fetch locations
-      const locationsResponse = await fetch('http://localhost:8080/api/location-updates', {
-        headers: { Authorization: apiKey },
-      });
-      if (locationsResponse.ok) {
-        const locationsData = await locationsResponse.json();
-        setLocations(locationsData);
-      }
-    } catch (err) {
-      console.error('Failed to fetch app state or locations:', err);
-    }
-  };
-
-  // Fetch app state and locations every 60 seconds
+  // Fetch initial locations
   useEffect(() => {
-    fetchAppStateAndLocations();
-    const interval = setInterval(fetchAppStateAndLocations, 60000); // Fetch every 60 seconds
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, [apiKey]);
+    const fetchLocations = async () => {
+      try {
+        const data = await apiFetch<Location[]>(null, '/api/locations'); // Fetch locations without an API key
+        setLocations(data);
+      } catch (err) {
+        console.error('Failed to fetch locations:', err.message);
+      }
+    };
+
+    fetchLocations();
+  }, []);
+
+  // Subscribe to the latest location updates
+  useSubscribe({
+    onLocationUpdate: (location) => {
+      setLocations((prevLocations) => [...prevLocations, location]); // Append the new location to the array
+    },
+  });
 
   return (
     <AppContext.Provider
@@ -51,7 +54,6 @@ export const AppProvider = ({ children }) => {
         setAppState,
         locations,
         setLocations,
-        fetchAppStateAndLocations, // Expose the refresh function
       }}>
       {children}
     </AppContext.Provider>

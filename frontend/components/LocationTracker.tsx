@@ -1,95 +1,103 @@
-import React, { useEffect } from 'react';
-import { Alert, Platform, PermissionsAndroid } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Alert, Platform } from 'react-native';
+import * as Location from 'expo-location'; // Import expo-location for location handling
+import { apiFetch } from '../utils/api'; // Import apiFetch for API calls
 
 type LocationTrackerProps = {
   apiKey: string;
   trackingEnabled: boolean;
+  rideStatus: string;
+  rideId: string;
+  onTrackingDisabled: () => void; // Callback to disable tracking when rideStatus is "Home"
 };
 
-const LocationTracker: React.FC<LocationTrackerProps> = ({ apiKey, trackingEnabled }) => {
-  useEffect(() => {
-    let intervalId: number | null = null;
+const LocationTracker: React.FC<LocationTrackerProps> = ({
+  apiKey,
+  trackingEnabled,
+  rideStatus,
+  rideId,
+  onTrackingDisabled,
+}) => {
+  const trackingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-    const requestLocationPermission = async () => {
-      if (Platform.OS === 'android') {
-        try {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-            {
-              title: 'Location Permission',
-              message: 'This app needs access to your location to track your position.',
-              buttonNeutral: 'Ask Me Later',
-              buttonNegative: 'Cancel',
-              buttonPositive: 'OK',
-            }
-          );
-          return granted === PermissionsAndroid.RESULTS.GRANTED;
-        } catch (err) {
-          console.warn(err);
-          return false;
-        }
-      }
-      return true; // iOS and web handle permissions differently
-    };
-
-    const sendLocationUpdate = async (latitude: number, longitude: number) => {
-      try {
-        const response = await fetch('/api/location-update', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ apiKey, latitude, longitude }),
-        });
-
-        if (!response.ok) {
-          console.error('Failed to send location update:', await response.text());
-        }
-      } catch (error) {
-        console.error('Error sending location update:', error);
-      }
-    };
-
-    const startTracking = async () => {
-      const hasPermission = await requestLocationPermission();
-      if (!hasPermission) {
-        showAlert('Permission Denied', 'Location permission is required to track your position.');
-        return;
-      }
-
-      intervalId = window.setInterval(() => {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            sendLocationUpdate(latitude, longitude);
-          },
-          (error) => {
-            console.error('Error fetching location:', error);
-            showAlert('Location Error', 'Unable to fetch location. Please check your settings.');
-          },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-      }, 30000); // Send location every 30 seconds
-    };
-
-    const showAlert = (title: string, message: string) => {
+  // Request location permissions
+  const requestLocationPermission = async (): Promise<boolean> => {
+    try {
       if (Platform.OS === 'web') {
-        window.alert(`${title}: ${message}`);
-      } else {
-        Alert.alert(title, message);
+        // Web does not require explicit permission handling
+        return true;
       }
-    };
+
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Location permission is required to enable tracking.');
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Error requesting location permission:', err);
+      Alert.alert('Error', 'Failed to request location permission.');
+      return false;
+    }
+  };
+
+  // Start location tracking
+  const startLocationTracking = async () => {
+    const hasPermission = await requestLocationPermission();
+    if (!hasPermission) {
+      onTrackingDisabled(); // Disable tracking if permission is denied
+      return;
+    }
+
+    trackingIntervalRef.current = setInterval(async () => {
+      try {
+        const location = await Location.getCurrentPositionAsync({});
+        const { latitude, longitude } = location.coords;
+
+        // Send location to the backend
+        await apiFetch(apiKey, '/handlers/locations', {
+          method: 'POST',
+          body: JSON.stringify({ latitude, longitude, rideId }),
+        });
+        console.log('Location sent to backend:', { latitude, longitude, rideId });
+      } catch (err) {
+        console.error('Failed to send location:', err.message);
+      }
+    }, 5000); // Send location every 5 seconds
+  };
+
+  // Stop location tracking
+  const stopLocationTracking = () => {
+    if (trackingIntervalRef.current) {
+      clearInterval(trackingIntervalRef.current);
+      trackingIntervalRef.current = null;
+      console.log('Location tracking stopped.');
+    }
+  };
+
+  useEffect(() => {
+    // Stop location tracking if the status is "Home"
+    if (rideStatus === 'Home' && trackingEnabled) {
+      Alert.alert(
+        'Tracking Disabled',
+        'Location tracking has been stopped because the status is "Home".'
+      );
+      onTrackingDisabled();
+      stopLocationTracking();
+      return;
+    }
 
     if (trackingEnabled) {
-      startTracking();
-    } else if (intervalId !== null) {
-      clearInterval(intervalId);
+      startLocationTracking();
+    } else {
+      stopLocationTracking();
     }
 
     return () => {
-      if (intervalId !== null) {
-        clearInterval(intervalId);
-      }
+      stopLocationTracking(); // Cleanup on component unmount
     };
-  }, [trackingEnabled, apiKey]);
+  }, [trackingEnabled, rideStatus]);
 
   return null; // This component does not render anything
 };

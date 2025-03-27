@@ -1,71 +1,45 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Button } from 'react-native';
-import { AppContext } from '../context/AppContext';
+import React, { useEffect, useContext } from 'react';
+import { View, StyleSheet } from 'react-native';
 import MapContent from '../components/MapContent';
+import AppControls from '../components/AppControls';
+import { AppContext } from '../context/AppContext';
+import { apiFetch } from '../utils/api';
+import { Location } from '../types';
 
-const Map = () => {
-  const { appState, locations, setLocations, fetchAppStateAndLocations, apiKey } =
-    useContext(AppContext); // Ensure setLocations and apiKey are retrieved from AppContext
-  const [isSubscribed, setIsSubscribed] = useState(false);
+const Map: React.FC = () => {
+  const { locations, setLocations, setAppState } = useContext(AppContext);
 
-  // Function to handle manual refresh
-  const handleRefresh = async () => {
-    await fetchAppStateAndLocations();
+  const fetchAppState = async () => {
+    try {
+      const data = await apiFetch(null, '/state'); // Fetch app state without an API key
+      setAppState(data);
+    } catch (err) {
+      console.error('Failed to fetch app state:', err.message);
+    }
   };
 
-  // Effect to manage location subscription based on rideStatus
-  useEffect(() => {
-    let eventSource;
-
-    const subscribeToLocations = async () => {
-      try {
-        eventSource = new EventSource('http://localhost:8080/subscribe', {
-          headers: { Authorization: apiKey }, // Use apiKey from AppContext
-        });
-
-        eventSource.onmessage = (event) => {
-          const location = JSON.parse(event.data);
-          setLocations((prevLocations) => [...prevLocations, location]); // Use setLocations from AppContext
-        };
-
-        eventSource.onerror = () => {
-          console.error('Error with location subscription');
-          eventSource.close();
-        };
-      } catch (error) {
-        console.error('Failed to subscribe to locations:', error);
-      }
-    };
-
-    if (appState.rideStatus !== 'Home' && !isSubscribed) {
-      console.log('Activating location subscription...');
-      subscribeToLocations();
-      setIsSubscribed(true);
-    } else if (appState.rideStatus === 'Home' && isSubscribed) {
-      console.log('Deactivating location subscription...');
-      if (eventSource) {
-        eventSource.close();
-      }
-      setIsSubscribed(false);
+  const fetchLocations = async () => {
+    try {
+      const data = await apiFetch<Location[]>(null, '/api/locations'); // Fetch locations without an API key
+      setLocations(data);
+    } catch (err) {
+      console.error('Failed to fetch locations:', err.message);
     }
+  };
 
-    return () => {
-      if (eventSource) {
-        eventSource.close();
-      }
-    };
-  }, [appState.rideStatus, isSubscribed]);
+  const handleRefresh = async () => {
+    await fetchAppState();
+    await fetchLocations();
+  };
+
+  useEffect(() => {
+    handleRefresh();
+  }, []);
 
   return (
     <View style={styles.container}>
-      {/* Display the ride status */}
-      <View style={styles.statusContainer}>
-        <Text style={styles.statusText}>{appState.rideStatus}</Text>
-        <Button title="Refresh" onPress={handleRefresh} />
-      </View>
-
-      {/* Use MapContent to render the map and markers */}
-      <MapContent markers={locations} />
+      <AppControls onRefresh={handleRefresh} />
+      <MapContent locations={locations} />
     </View>
   );
 };
@@ -73,16 +47,6 @@ const Map = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  statusContainer: {
-    backgroundColor: '#000',
-    padding: 16,
-    alignItems: 'center',
-  },
-  statusText: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 'bold',
   },
 });
 
