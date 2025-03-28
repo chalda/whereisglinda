@@ -6,7 +6,6 @@ import { Image } from 'react-native';
 import About from '../screens/About';
 import HireGlinda from '../screens/HireGlinda';
 import Map from '../screens/Map';
-import Tracker from '../screens/Tracker';
 import DriverLogin from '../screens/DriverLogin'; // Import DriverLogin screen
 import { AppProvider } from '../context/AppContext'; // Import AppProvider
 
@@ -15,7 +14,6 @@ export type RootStackParamList = {
   Map: undefined;
   About: undefined;
   HireGlinda: undefined;
-  Tracker: undefined;
 };
 
 const Drawer = createDrawerNavigator<RootStackParamList>();
@@ -54,7 +52,6 @@ export default function RootStack() {
             component={HireGlinda}
             options={{ drawerLabel: 'Hire Glinda' }}
           />
-          <Drawer.Screen name="Tracker" component={Tracker} options={{ drawerLabel: 'Tracker' }} />
         </Drawer.Navigator>
       </NavigationContainer>
     </AppProvider>

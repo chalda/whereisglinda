@@ -30,6 +30,7 @@ const cfg = {
       config: {
         googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
       },
+      bundleIdentifier: 'com.whereisglinda',
     },
     android: {
       adaptiveIcon: {
@@ -41,6 +42,7 @@ const cfg = {
           apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
         },
       },
+      package: 'com.whereisglinda',
     },
     web: {
       bundler: 'metro',
