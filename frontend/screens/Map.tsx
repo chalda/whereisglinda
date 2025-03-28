@@ -3,24 +3,23 @@ import { View, StyleSheet } from 'react-native';
 import MapContent from '../components/MapContent';
 import AppControls from '../components/AppControls';
 import { AppContext } from '../context/AppContext';
-import { apiFetch } from '../utils/api';
-import { Location } from '../types';
+import { fetchAppState, fetchLocations } from '../utils/api';
 
 const Map: React.FC = () => {
   const { locations, setLocations, setAppState } = useContext(AppContext);
 
-  const fetchAppState = async () => {
+  const loadAppState = async () => {
     try {
-      const data = await apiFetch(null, '/state'); // Fetch app state without an API key
+      const data = await fetchAppState(); // Fetch app state without an API key
       setAppState(data);
     } catch (err) {
       console.error('Failed to fetch app state:', err.message);
     }
   };
 
-  const fetchLocations = async () => {
+  const loadLocations = async () => {
     try {
-      const data = await apiFetch<Location[]>(null, '/api/locations'); // Fetch locations without an API key
+      const data = await fetchLocations(); // Fetch locations without an API key
       setLocations(data);
     } catch (err) {
       console.error('Failed to fetch locations:', err.message);
@@ -28,8 +27,8 @@ const Map: React.FC = () => {
   };
 
   const handleRefresh = async () => {
-    await fetchAppState();
-    await fetchLocations();
+    await loadAppState();
+    await loadLocations();
   };
 
   useEffect(() => {

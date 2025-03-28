@@ -1,32 +1,39 @@
-import { useEffect } from 'react';
-import { Location } from '../types';
+import { useEffect, useRef } from 'react';
+import { Location } from '../types'; // Import the Location type
 
 type UseSubscribeProps = {
-  onLocationUpdate: (location: Location) => void; // Callback to handle location updates
+  onLocationUpdate: (location: Location) => void;
+  enabled: boolean;
 };
 
-const useSubscribe = ({ onLocationUpdate }: UseSubscribeProps) => {
+const useSubscribe = ({ onLocationUpdate, enabled }: UseSubscribeProps) => {
+  const eventSourceRef = useRef<EventSource | null>(null);
+
   useEffect(() => {
-    const eventSource = new EventSource('/subscribe'); // Connect to the /subscribe endpoint
+    if (enabled) {
+      eventSourceRef.current = new EventSource('/locations/subscribe');
 
-    eventSource.onmessage = (event) => {
-      try {
-        const location: Location = JSON.parse(event.data); // Parse the location data
-        onLocationUpdate(location); // Append the new location to the locations array
-      } catch (err) {
-        console.error('Failed to parse location update:', err);
-      }
-    };
+      eventSourceRef.current.onmessage = (event) => {
+        try {
+          const location: Location = JSON.parse(event.data);
+          onLocationUpdate(location);
+        } catch (err) {
+          console.error('Failed to parse location update:', err);
+        }
+      };
 
-    eventSource.onerror = (err) => {
-      console.error('Error with /subscribe connection:', err);
-      eventSource.close(); // Close the connection on error
-    };
+      eventSourceRef.current.onerror = (err) => {
+        console.error('Error with /subscribe connection:', err);
+        eventSourceRef.current?.close();
+      };
+    } else {
+      eventSourceRef.current?.close();
+    }
 
     return () => {
-      eventSource.close(); // Cleanup the connection on component unmount
+      eventSourceRef.current?.close();
     };
-  }, [onLocationUpdate]);
+  }, [onLocationUpdate, enabled]);
 };
 
 export default useSubscribe;

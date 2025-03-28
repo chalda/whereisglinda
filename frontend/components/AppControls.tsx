@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Switch } from 'react-native';
 import { AppContext } from '../context/AppContext'; // Import AppContext for global state
 import LocationTracker from './LocationTracker'; // Import LocationTracker for location tracking
-import { apiFetch } from '../utils/api'; // Import apiFetch for API calls
+import { updateAppState, createNewTrip } from '../utils/api'; // Import updateAppState for API calls
 
 type AppControlsProps = {
   onRefresh: () => void;
@@ -18,6 +18,7 @@ const AppControls: React.FC<AppControlsProps> = ({ onRefresh }) => {
   const canEditRideId = userRole === 'admin' || userRole === 'driver';
   const canEditGeobox = userRole === 'admin';
   const canEditTracking = userRole === 'admin' || userRole === 'driver' || userRole === 'bus';
+  const canCreateNewTrip = userRole === 'admin' || userRole === 'driver' || userRole === 'bus';
 
   const handleUpdateAppState = async () => {
     try {
@@ -26,17 +27,32 @@ const AppControls: React.FC<AppControlsProps> = ({ onRefresh }) => {
         homeGeobox: JSON.parse(geobox),
       };
 
-      const response = await apiFetch(apiKey, '/state', {
-        method: 'PUT',
-        body: JSON.stringify(updatedAppState),
-      });
-
+      const response = await updateAppState(apiKey!, updatedAppState);
       setAppState(response);
       console.log('App state updated successfully');
     } catch (err) {
       console.error('Failed to update app state:', err.message);
     }
   };
+  const handleCreateNewTrip = async () => {
+    try {
+      const newTripId = await createNewTrip(apiKey);
+      // Update app state with new trip ID
+      setAppState({ ...appState, tripId: newTripId.tripID });
+    } catch (err) {
+      console.error('Failed to create new trip:', err.message);
+    }
+  };
+
+  if (!apiKey) {
+    // If the user is not authenticated, only show the status as text
+    return (
+      <View style={styles.container}>
+        <Text style={styles.label}>App Status:</Text>
+        <Text style={styles.text}>{appState?.rideStatus || 'N/A'}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -51,6 +67,8 @@ const AppControls: React.FC<AppControlsProps> = ({ onRefresh }) => {
       ) : (
         <Text style={styles.text}>{appState?.rideStatus || 'N/A'}</Text>
       )}
+
+      {canCreateNewTrip && <Button title="New Trip" onPress={handleCreateNewTrip} />}
 
       <Text style={styles.label}>Ride ID:</Text>
       {canEditRideId ? (

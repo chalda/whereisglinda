@@ -10,7 +10,6 @@ type MapContentProps = {
 
 const googleMapsApiKey = Constants.expoConfig.extra?.googleMapsApiKey;
 
-const MapContent: React.FC<MapContentProps> = ({ locations }) => {
   const initialRegion: MapViewProps['region'] = {
     latitude: 40.6782,
     longitude: -73.9442,
@@ -18,12 +17,16 @@ const MapContent: React.FC<MapContentProps> = ({ locations }) => {
     longitudeDelta: 0.05,
   };
 
+const MapContent: React.FC<MapContentProps> = ({ locations }) => {
+
+
   return (
     <View style={styles.container}>
       <MapView
         style={styles.map}
         provider={PROVIDER_GOOGLE}
-        initialRegion={initialRegion}
+        region={initialRegion}
+        zoom={10}
         {...(Platform.OS === 'web' && { googleMapsApiKey })}>
         <Polyline
           coordinates={locations.map((location) => ({

@@ -1,14 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { Alert, Platform } from 'react-native';
-import * as Location from 'expo-location'; // Import expo-location for location handling
-import { apiFetch } from '../utils/api'; // Import apiFetch for API calls
+import * as Location from 'expo-location';
+import { sendLocation } from '../utils/api';
 
 type LocationTrackerProps = {
   apiKey: string;
   trackingEnabled: boolean;
   rideStatus: string;
   rideId: string;
-  onTrackingDisabled: () => void; // Callback to disable tracking when rideStatus is "Home"
+  onTrackingDisabled: () => void;
 };
 
 const LocationTracker: React.FC<LocationTrackerProps> = ({
@@ -18,13 +18,12 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
   rideId,
   onTrackingDisabled,
 }) => {
-  const trackingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Use 'number' instead of 'NodeJS.Timeout'
+  const trackingIntervalRef = useRef<number | null>(null);
 
-  // Request location permissions
   const requestLocationPermission = async (): Promise<boolean> => {
     try {
       if (Platform.OS === 'web') {
-        // Web does not require explicit permission handling
         return true;
       }
 
@@ -42,34 +41,30 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
     }
   };
 
-  // Start location tracking
   const startLocationTracking = async () => {
     const hasPermission = await requestLocationPermission();
     if (!hasPermission) {
-      onTrackingDisabled(); // Disable tracking if permission is denied
+      onTrackingDisabled();
       return;
     }
 
+    // Use 'setInterval' which returns a number
     trackingIntervalRef.current = setInterval(async () => {
       try {
         const location = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = location.coords;
 
-        // Send location to the backend
-        await apiFetch(apiKey, '/handlers/locations', {
-          method: 'POST',
-          body: JSON.stringify({ latitude, longitude, rideId }),
-        });
+        await sendLocation(apiKey, { latitude, longitude, rideId }); // Send location with API key
         console.log('Location sent to backend:', { latitude, longitude, rideId });
       } catch (err) {
         console.error('Failed to send location:', err.message);
       }
-    }, 5000); // Send location every 5 seconds
+    }, 5000);
   };
 
-  // Stop location tracking
   const stopLocationTracking = () => {
     if (trackingIntervalRef.current) {
+      // Use 'clearInterval' with the number
       clearInterval(trackingIntervalRef.current);
       trackingIntervalRef.current = null;
       console.log('Location tracking stopped.');
@@ -77,7 +72,6 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
   };
 
   useEffect(() => {
-    // Stop location tracking if the status is "Home"
     if (rideStatus === 'Home' && trackingEnabled) {
       Alert.alert(
         'Tracking Disabled',
@@ -95,11 +89,11 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
     }
 
     return () => {
-      stopLocationTracking(); // Cleanup on component unmount
+      stopLocationTracking();
     };
   }, [trackingEnabled, rideStatus]);
 
-  return null; // This component does not render anything
+  return null;
 };
 
 export default LocationTracker;
