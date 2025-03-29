@@ -24,13 +24,13 @@ const cfg = {
       resizeMode: 'contain',
       backgroundColor: '#ffffff',
     },
-    assetBundlePatterns: ['**/*'],
+    assetBundlePatterns: ['**/*', 'index.js'],
     ios: {
       supportsTablet: true,
       config: {
         googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
       },
-      bundleIdentifier: 'com.whereisglinda',
+      bundleIdentifier: 'com.chalda.whereisglinda',
     },
     android: {
       adaptiveIcon: {
@@ -42,7 +42,7 @@ const cfg = {
           apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
         },
       },
-      package: 'com.whereisglinda',
+      package: 'com.chalda.whereisglinda',
     },
     web: {
       bundler: 'metro',

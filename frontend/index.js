@@ -1,4 +1,7 @@
-import { AppRegistry } from 'react-native';
+import { registerRootComponent } from 'expo';
+import { AppRegistry, Platform } from 'react-native';
+import "react-native-gesture-handler";
+
 
 import RootStack from './navigation';
 
@@ -6,8 +9,12 @@ import RootStack from './navigation';
 // import { registerRootComponent } from 'expo';
 //registerRootComponent(RootStack);
 
-AppRegistry.registerComponent('Root', () => RootStack);
-AppRegistry.runApplication('Root', {
-  // eslint-disable-next-line no-undef
-  rootTag: document.getElementById('root'),
-});
+if (Platform.OS === 'web') {
+  AppRegistry.registerComponent('main', () => RootStack);
+  AppRegistry.runApplication('main', {
+    // eslint-disable-next-line no-undef
+    rootTag: document.getElementById('root'),
+  });
+} else {
+  registerRootComponent(RootStack);
+}
