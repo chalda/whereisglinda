@@ -3,11 +3,11 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import React from 'react';
 import { Image } from 'react-native';
 
+import { AppProvider } from '../context/AppContext'; // Import AppProvider
 import About from '../screens/About';
+import DriverLogin from '../screens/DriverLogin'; // Import DriverLogin screen
 import HireGlinda from '../screens/HireGlinda';
 import Map from '../screens/Map';
-import DriverLogin from '../screens/DriverLogin'; // Import DriverLogin screen
-import { AppProvider } from '../context/AppContext'; // Import AppProvider
 
 export type RootStackParamList = {
   DriverLogin: undefined;
@@ -23,7 +23,7 @@ export default function RootStack() {
     <AppProvider>
       <NavigationContainer theme={DefaultTheme}>
         <Drawer.Navigator
-          id="rootDrawer"
+          useLegacyImplementation={false}
           initialRouteName="Map" // Set Map as the initial route
           screenOptions={{
             headerTitle: () => (

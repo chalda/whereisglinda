@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { fetchLocations, fetchAppState } from '../utils/api';
+
 import { AppState, Location, UserRole } from '../types';
+import { fetchLocations, fetchAppState } from '../utils/api';
 import useSubscribe from '../utils/useSubscribe';
 
 export interface AppContextProps {
@@ -46,18 +47,18 @@ export const AppProvider: React.FC = ({ children }) => {
   }, [apiKey]);
 
   // Fetch initial locations
-  useEffect(() => {
-    const loadLocations = async () => {
-      try {
-        const data = await fetchLocations(); // Fetch locations without an API key
-        setLocations(data);
-      } catch (err) {
-        console.error('Failed to fetch locations:', err.message);
-      }
-    };
+  // useEffect(() => {
+  //   const loadLocations = async () => {
+  //     try {
+  //       const data = await fetchLocations(); // Fetch locations without an API key
+  //       setLocations(data);
+  //     } catch (err) {
+  //       console.error('Failed to fetch locations:', err.message);
+  //     }
+  //   };
 
-    loadLocations();
-  }, []);
+  //   loadLocations();
+  // }, []);
 
   // Subscribe to the latest location updates
   useSubscribe({

@@ -1,7 +1,8 @@
+import Constants from 'expo-constants';
 import React from 'react';
 import { StyleSheet, View, Platform } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, MapViewProps, Polyline } from 'react-native-maps';
-import Constants from 'expo-constants';
+
 import { Location } from '../types';
 
 type MapContentProps = {
@@ -10,30 +11,28 @@ type MapContentProps = {
 
 const googleMapsApiKey = Constants.expoConfig.extra?.googleMapsApiKey;
 
-  const initialRegion: MapViewProps['region'] = {
-    latitude: 40.6782,
-    longitude: -73.9442,
-    latitudeDelta: 0.05,
-    longitudeDelta: 0.05,
-  };
+const initialRegion: MapViewProps['region'] = {
+  latitude: 40.6782,
+  longitude: -73.9442,
+  latitudeDelta: 0.05,
+  longitudeDelta: 0.05,
+};
 
 const MapContent: React.FC<MapContentProps> = ({ locations }) => {
-
-
   return (
     <View style={styles.container}>
       <MapView
         style={styles.map}
         provider={PROVIDER_GOOGLE}
         region={initialRegion}
-        zoom={10}
+        zoom={15}
         {...(Platform.OS === 'web' && { googleMapsApiKey })}>
         <Polyline
           coordinates={locations.map((location) => ({
             latitude: location.latitude,
             longitude: location.longitude,
           }))}
-          strokeColor="#FF0000"
+          strokeColor="red"
           strokeWidth={4}
         />
       </MapView>

@@ -1,7 +1,8 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+
 import { AppContext } from '../context/AppContext'; // Import AppContext for global state
-import { apiFetch } from '../utils/api'; // Import apiFetch for API calls
+import { validateApiKey } from '../utils/api';
 
 const DriverLogin: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { setApiKey, setUserRole } = useContext(AppContext);
@@ -10,14 +11,7 @@ const DriverLogin: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   const handleLogin = async () => {
     try {
-      const response = await apiFetch<{ success: boolean; role: 'admin' | 'driver' | 'bus' }>(
-        inputApiKey,
-        '/api/validate',
-        {
-          method: 'POST',
-          body: JSON.stringify({ apiKey: inputApiKey }),
-        }
-      );
+      const response = await validateApiKey(inputApiKey);
 
       if (response.success) {
         setApiKey(inputApiKey); // Save the API key in context
