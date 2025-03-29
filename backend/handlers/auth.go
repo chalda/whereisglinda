@@ -74,9 +74,11 @@ func ValidateKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := struct {
-		Role string `json:"role"`
+		Role    string `json:"role"`
+		Success bool   `json:"success"`
 	}{
-		Role: role,
+		Role:    role,
+		Success: true,
 	}
 
 	w.WriteHeader(http.StatusOK)

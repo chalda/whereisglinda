@@ -1,13 +1,25 @@
 package routes
 
 import (
+	"log"
+	"net/http"
+	"time"
 	"whereisglinda-backend/handlers"
 
 	"github.com/gorilla/mux"
 )
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		next.ServeHTTP(w, r)
+		log.Printf("%s %s %s %s", r.Method, r.RequestURI, r.RemoteAddr, time.Since(start))
+	})
+}
+
 func SetupRoutes() *mux.Router {
 	router := mux.NewRouter()
+	router.Use(loggingMiddleware)
 
 	// App State Endpoints
 	router.HandleFunc("/state", handlers.GetAppState).Methods("GET")                                             // Fetch app state
