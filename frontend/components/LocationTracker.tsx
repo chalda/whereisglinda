@@ -1,13 +1,14 @@
+import * as Location from 'expo-location';
 import React, { useEffect, useRef } from 'react';
 import { Alert, Platform } from 'react-native';
-import * as Location from 'expo-location';
+
 import { sendLocation } from '../utils/api';
 
 type LocationTrackerProps = {
   apiKey: string;
   trackingEnabled: boolean;
   rideStatus: string;
-  rideId: string;
+  tripId: number;
   onTrackingDisabled: () => void;
 };
 
@@ -15,11 +16,11 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
   apiKey,
   trackingEnabled,
   rideStatus,
-  rideId,
+  tripId,
   onTrackingDisabled,
 }) => {
   // Use 'number' instead of 'NodeJS.Timeout'
-  const trackingIntervalRef = useRef<number | null>(null);
+  const trackingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const requestLocationPermission = async (): Promise<boolean> => {
     try {
@@ -54,8 +55,8 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
         const location = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = location.coords;
 
-        await sendLocation(apiKey, { latitude, longitude, rideId }); // Send location with API key
-        console.log('Location sent to backend:', { latitude, longitude, rideId });
+        await sendLocation(apiKey, latitude, longitude, tripId); // Send location with API key
+        console.log('Location sent to backend:', { latitude, longitude, tripId });
       } catch (err) {
         console.error('Failed to send location:', err.message);
       }

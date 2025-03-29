@@ -1,8 +1,9 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Switch } from 'react-native';
-import { AppContext } from '../context/AppContext'; // Import AppContext for global state
+
 import LocationTracker from './LocationTracker'; // Import LocationTracker for location tracking
-import { updateAppState, createNewTrip } from '../utils/api'; // Import updateAppState for API calls
+import { AppContext } from '../context/AppContext'; // Import AppContext for global state
+import { createNewTrip, setRideStatus } from '../utils/api'; // Import updateAppState for API calls
 
 type AppControlsProps = {
   onRefresh: () => void;
@@ -10,35 +11,43 @@ type AppControlsProps = {
 
 const AppControls: React.FC<AppControlsProps> = ({ onRefresh }) => {
   const { apiKey, userRole, appState, setAppState } = useContext(AppContext);
-  const [rideId, setRideId] = useState<string>(appState?.rideStatus || '');
   const [geobox, setGeobox] = useState<string>(JSON.stringify(appState?.homeGeobox || []));
   const [trackingEnabled, setTrackingEnabled] = useState<boolean>(false);
 
   const canEditAppStatus = userRole === 'admin';
-  const canEditRideId = userRole === 'admin' || userRole === 'driver';
   const canEditGeobox = userRole === 'admin';
   const canEditTracking = userRole === 'admin' || userRole === 'driver' || userRole === 'bus';
   const canCreateNewTrip = userRole === 'admin' || userRole === 'driver' || userRole === 'bus';
 
-  const handleUpdateAppState = async () => {
-    try {
-      const updatedAppState = {
-        rideStatus: rideId,
-        homeGeobox: JSON.parse(geobox),
-      };
+  // const handleUpdateHomeGeobox = async () => {
+  //   try {
+  //     const updatedAppState = {
+  //       tripId: appState.i
+  //       homeGeobox: JSON.parse(geobox),
+  //     };
 
-      const response = await updateAppState(apiKey!, updatedAppState);
-      setAppState(response);
-      console.log('App state updated successfully');
-    } catch (err) {
-      console.error('Failed to update app state:', err.message);
-    }
-  };
+  //     const response = await setHomeGeobox(apiKey!, homeGeobox);
+  //     setAppState(response);
+  //     console.log('App state updated successfully');
+  //   } catch (err) {
+  //     console.error('Failed to update app state:', err.message);
+  //   }
+  // };
   const handleCreateNewTrip = async () => {
     try {
       const newTripId = await createNewTrip(apiKey);
       // Update app state with new trip ID
       setAppState({ ...appState, tripId: newTripId.tripID });
+    } catch (err) {
+      console.error('Failed to create new trip:', err.message);
+    }
+  };
+
+  const handleUpdateAppStatus = async (newStatus: string) => {
+    try {
+      const newTripId = await setRideStatus(apiKey, newStatus);
+      // Update app state with new trip ID
+      setAppState({ ...appState, rideStatus: newStatus });
     } catch (err) {
       console.error('Failed to create new trip:', err.message);
     }
@@ -50,6 +59,7 @@ const AppControls: React.FC<AppControlsProps> = ({ onRefresh }) => {
       <View style={styles.container}>
         <Text style={styles.label}>App Status:</Text>
         <Text style={styles.text}>{appState?.rideStatus || 'N/A'}</Text>
+        <Button title="Refresh" onPress={onRefresh} />
       </View>
     );
   }
@@ -60,27 +70,16 @@ const AppControls: React.FC<AppControlsProps> = ({ onRefresh }) => {
       {canEditAppStatus ? (
         <TextInput
           style={styles.input}
-          value={rideId}
-          onChangeText={setRideId}
-          placeholder="App Status"
+          value={appState.rideStatus}
+          onChangeText={handleUpdateAppStatus}
+          placeholder="Ride Status"
         />
       ) : (
         <Text style={styles.text}>{appState?.rideStatus || 'N/A'}</Text>
       )}
+      <Button title="Refresh" onPress={onRefresh} />
 
-      {canCreateNewTrip && <Button title="New Trip" onPress={handleCreateNewTrip} />}
-
-      <Text style={styles.label}>Ride ID:</Text>
-      {canEditRideId ? (
-        <TextInput
-          style={styles.input}
-          value={rideId}
-          onChangeText={setRideId}
-          placeholder="Ride ID"
-        />
-      ) : (
-        <Text style={styles.text}>{appState?.rideStatus || 'N/A'}</Text>
-      )}
+      {canCreateNewTrip && <Button title="Start New Trip" onPress={handleCreateNewTrip} />}
 
       <Text style={styles.label}>Geobox:</Text>
       {canEditGeobox ? (
@@ -101,17 +100,11 @@ const AppControls: React.FC<AppControlsProps> = ({ onRefresh }) => {
         <Text style={styles.text}>{trackingEnabled ? 'Enabled' : 'Disabled'}</Text>
       )}
 
-      {(canEditAppStatus || canEditRideId || canEditGeobox || canEditTracking) && (
-        <Button title="Update App State" onPress={handleUpdateAppState} />
-      )}
-
-      <Button title="Refresh" onPress={onRefresh} />
-
       <LocationTracker
         apiKey={apiKey}
         trackingEnabled={trackingEnabled}
         rideStatus={appState?.rideStatus || ''}
-        rideId={rideId}
+        tripId={appState?.tripId}
         onTrackingDisabled={() => setTrackingEnabled(false)}
       />
     </View>
