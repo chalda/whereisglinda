@@ -15,16 +15,17 @@ var (
 )
 
 func GetAppState(w http.ResponseWriter, r *http.Request) {
-	state, err := storage.GetAppState()
+	appState, err := storage.GetAppState()
 	if err != nil {
-		http.Error(w, "Failed to fetch app state", http.StatusInternalServerError)
+		http.Error(w, "Failed to get app state", http.StatusInternalServerError)
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(state); err != nil {
-		http.Error(w, "Failed to encode app state", http.StatusInternalServerError)
-		return
-	}
+	activeTripId, err := storage.GetActiveTripID()
+	appState.ActiveTripID = activeTripId
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(appState)
 }
 
 func SetAppState(w http.ResponseWriter, r *http.Request) {

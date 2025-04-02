@@ -25,10 +25,14 @@ func createTables() {
 	// Create trips table to manage the current trip ID
 	_, err := DB.Exec(`
         CREATE TABLE IF NOT EXISTS trips (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            currentTripID INTEGER NOT NULL DEFAULT 1
+            trip_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            start_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+            end_time DATETIME,
+            status TEXT
         )
     `)
+
 	if err != nil {
 		log.Fatalf("Failed to create trips table: %v", err)
 	}
@@ -46,11 +50,11 @@ func createTables() {
 	_, err = DB.Exec(`
         CREATE TABLE IF NOT EXISTS locations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tripID INTEGER NOT NULL,
+            trip_id INTEGER NOT NULL,
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (tripID) REFERENCES trips(id)
+            FOREIGN KEY (trip_id) REFERENCES trips(trip_id)
         )
     `)
 	if err != nil {

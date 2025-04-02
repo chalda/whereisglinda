@@ -7,7 +7,7 @@ import (
 )
 
 // Middleware to validate API key and role
-func Authorize(requiredRole string, next http.HandlerFunc) http.HandlerFunc {
+func Authorize(permittedRoles []string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		apiKey := r.Header.Get("Authorization")
 		if apiKey == "" {
@@ -23,7 +23,8 @@ func Authorize(requiredRole string, next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		// Check if the user's role has sufficient permissions
-		if !hasPermission(role, requiredRole) {
+		if !hasPermission(role, permittedRoles) {
+
 			http.Error(w, "Insufficient permissions", http.StatusForbidden)
 			return
 		}
@@ -47,14 +48,13 @@ func getRoleForKey(apiKey string) string {
 }
 
 // Check if the user's role has sufficient permissions
-func hasPermission(userRole, requiredRole string) bool {
-	roles := map[string]int{
-		"bus":    1,
-		"driver": 2,
-		"admin":  3,
+func hasPermission(userRole string, permittedRoles []string) bool {
+	for _, role := range permittedRoles {
+		if role == userRole {
+			return true
+		}
 	}
-
-	return roles[userRole] >= roles[requiredRole]
+	return false
 }
 
 func ValidateKey(w http.ResponseWriter, r *http.Request) {

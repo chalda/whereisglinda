@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"database/sql"
 	"fmt"
 	"whereisglinda-backend/models"
 )
@@ -15,17 +14,23 @@ func SaveTripLocation(location models.TripLocation) error {
 	return nil
 }
 
-// GetCurrentTripID retrieves the current trip ID from the database
-func GetCurrentTripID() (int, error) {
-	var tripID int
-	err := DB.QueryRow("SELECT currentTripID FROM trips WHERE id = 1").Scan(&tripID)
+func GetLocationsForTrip(tripID int) ([]models.TripLocation, error) {
+	rows, err := DB.Query("SELECT * FROM locations WHERE trip_id = ?", tripID)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return 0, fmt.Errorf("no trip ID found")
-		}
-		return 0, err
+		return nil, err
 	}
-	return tripID, nil
+	defer rows.Close()
+
+	locations := make([]models.TripLocation, 0)
+	for rows.Next() {
+		var location models.TripLocation
+		err := rows.Scan(&location.ID, &location.TripID, &location.Latitude, &location.Longitude)
+		if err != nil {
+			return nil, err
+		}
+		locations = append(locations, location)
+	}
+	return locations, nil
 }
 
 // IncrementTripID increments the current trip ID in the database

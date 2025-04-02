@@ -39,12 +39,13 @@ func main() {
 	router := routes.SetupRoutes()
 
 	// Configure CORS
-	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:8081"}, // Frontend origin
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "Authorization"},
-		AllowCredentials: true,
-	}).Handler(router)
+	corsHandler := cors.AllowAll().Handler(router)
+	// corsHandler := cors.New(cors.Options{
+	// 	AllowedOrigins:   []string{"http://localhost:8081"}, // Frontend origin
+	// 	AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	// 	AllowedHeaders:   []string{"Content-Type", "Authorization"},
+	// 	AllowCredentials: true,
+	// }).Handler(router)
 
 	// Start the server
 	log.Println("Starting server on :8080...")
@@ -54,6 +55,7 @@ func main() {
 }
 
 func populateDummyData() {
+	tripID := 1
 	// Insert dummy app state with a square mile in Bushwick, Brooklyn, NY
 	err := storage.UpdateAppState(models.AppState{
 		RideStatus: "Riding",
@@ -63,6 +65,7 @@ func populateDummyData() {
 			{Latitude: 40.6952, Longitude: -73.9202}, // Bottom-Right
 			{Latitude: 40.6952, Longitude: -73.9336}, // Bottom-Left
 		},
+		ActiveTripID: &tripID, // Add TripID to the AppState model
 	})
 	if err != nil {
 		log.Printf("Failed to insert dummy app state: %v", err)

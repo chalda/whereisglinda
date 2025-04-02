@@ -7,5 +7,6 @@ type Location struct {
 
 type TripLocation struct {
 	Location
-	TripID int `json:"tripID"`
+	TripID int `json:"tripId"`
+	ID     int `json:"id"`
 }
