@@ -13,52 +13,67 @@ export interface AppContextProps {
   setAppState: (state: AppState) => void;
   locations: Location[];
   setLocations: (locations: Location[]) => void;
-  tripId: number | null;
-  setTripId: (tripId: number) => void;
+  activeTripId: number | null;
+  setActiveTripId: (tripId: number) => void;
 }
 
 export const AppContext = createContext<AppContextProps>({} as AppContextProps);
 
-export const AppProvider: React.FC = ({ children }) => {
+export const AppProvider: React.FC = ({ children }: { children: React.ReactNode }) => {
   const [apiKey, setApiKey] = useState<string>('');
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [appState, setAppState] = useState<AppState | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
-  const [tripId, setTripId] = useState<number | null>(null);
+  const [activeTripId, setActiveTripId] = useState<number | null>(null);
   const [locationSubscriptionEnabled, setLocationSubscriptionEnabled] = useState(false);
 
   useEffect(() => {
     const intervalId = setInterval(async () => {
       try {
-        const data = await fetchAppState(apiKey);
+        const data = await fetchAppState();
         setAppState(data);
-
-        if (data.rideStatus !== 'Home') {
-          setLocationSubscriptionEnabled(true);
-        } else {
-          setLocationSubscriptionEnabled(false);
-        }
       } catch (err) {
         console.error('Failed to fetch app state:', err.message);
       }
-    }, 40 * 1000); // 40 seconds
+    }, 30 * 1000); // 30 seconds
 
     return () => clearInterval(intervalId);
-  }, [apiKey]);
+  }, []);
 
-  // Fetch initial locations
-  // useEffect(() => {
-  //   const loadLocations = async () => {
-  //     try {
-  //       const data = await fetchLocations(); // Fetch locations without an API key
-  //       setLocations(data);
-  //     } catch (err) {
-  //       console.error('Failed to fetch locations:', err.message);
-  //     }
-  //   };
+  useEffect(() => {
+    if (appState && appState?.rideStatus !== 'Home') {
+      setLocationSubscriptionEnabled(true);
+    } else {
+      setLocationSubscriptionEnabled(false);
+    }
+  }, [appState]);
 
-  //   loadLocations();
-  // }, []);
+  const loadAppState = async () => {
+    try {
+      const data = await fetchAppState(); // Fetch app state without an API key
+      setAppState(data);
+    } catch (err) {
+      console.error('Failed to fetch app state:', err.message);
+    }
+  };
+
+  const loadLocations = async () => {
+    try {
+      const data = await fetchLocations(); // Fetch locations without an API key
+      setLocations(data);
+    } catch (err) {
+      console.error('Failed to fetch locations:', err.message);
+    }
+  };
+
+  const handleRefresh = async () => {
+    await loadAppState();
+    await loadLocations();
+  };
+
+  useEffect(() => {
+    handleRefresh();
+  }, []);
 
   // Subscribe to the latest location updates
   useSubscribe({
@@ -79,8 +94,8 @@ export const AppProvider: React.FC = ({ children }) => {
         setAppState,
         locations,
         setLocations,
-        tripId,
-        setTripId,
+        activeTripId,
+        setActiveTripId,
       }}>
       {children}
     </AppContext.Provider>

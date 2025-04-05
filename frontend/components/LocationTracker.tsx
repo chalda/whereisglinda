@@ -8,7 +8,7 @@ type LocationTrackerProps = {
   apiKey: string;
   trackingEnabled: boolean;
   rideStatus: string;
-  tripId: number;
+  activeTripId: number;
   onTrackingDisabled: () => void;
 };
 
@@ -16,7 +16,7 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
   apiKey,
   trackingEnabled,
   rideStatus,
-  tripId,
+  activeTripId,
   onTrackingDisabled,
 }) => {
   // Use 'number' instead of 'NodeJS.Timeout'
@@ -55,8 +55,8 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
         const location = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = location.coords;
 
-        await sendLocation(apiKey, latitude, longitude, tripId); // Send location with API key
-        console.log('Location sent to backend:', { latitude, longitude, tripId });
+        await sendLocation(apiKey, latitude, longitude, activeTripId); // Send location with API key
+        console.log('Location sent to backend:', { latitude, longitude, activeTripId });
       } catch (err) {
         console.error('Failed to send location:', err.message);
       }

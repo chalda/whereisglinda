@@ -1,13 +1,13 @@
 export type Location = {
   latitude: number;
   longitude: number;
-  tripID: number;
+  tripId: number;
 };
 
 export type AppState = {
   rideStatus: string;
   homeGeobox: Location[];
-  tripId: number | null;
+  activeTripId: number | null;
 };
 
 export type UserRole = 'admin' | 'driver' | 'bus' | null;

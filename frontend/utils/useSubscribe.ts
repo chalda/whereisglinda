@@ -5,6 +5,7 @@ import EventSource from 'react-native-sse';
 import { Location } from '../types'; // Import the Location type
 
 const backendUrl: string = Constants.expoConfig.extra.backendUrl;
+const es = new EventSource(`${backendUrl}/locations/subscribe`);
 
 type UseSubscribeProps = {
   onLocationUpdate: (location: Location) => void;
@@ -12,8 +13,6 @@ type UseSubscribeProps = {
 };
 
 const useSubscribe = ({ onLocationUpdate, enabled }: UseSubscribeProps) => {
-  const es = new EventSource(`${backendUrl}/locations/subscribe`);
-
   useEffect(() => {
     if (enabled) {
       es.addEventListener('open', (event) => {
@@ -37,6 +36,8 @@ const useSubscribe = ({ onLocationUpdate, enabled }: UseSubscribeProps) => {
       es.addEventListener('close', (event) => {
         console.log('Close SSE connection.');
       });
+
+      es.open();
     } else {
       es.removeAllEventListeners();
       es.close();

@@ -1,5 +1,5 @@
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme, NavigationProp } from '@react-navigation/native';
 import React from 'react';
 import { Image } from 'react-native';
 
@@ -16,6 +16,8 @@ export type RootStackParamList = {
   HireGlinda: undefined;
 };
 
+export type RootStackNavigation = NavigationProp<RootStackParamList>;
+
 const Drawer = createDrawerNavigator<RootStackParamList>();
 
 export default function RootStack() {
@@ -23,7 +25,7 @@ export default function RootStack() {
     <AppProvider>
       <NavigationContainer theme={DefaultTheme}>
         <Drawer.Navigator
-          useLegacyImplementation={false}
+          id={'root-router'}
           initialRouteName="Map" // Set Map as the initial route
           screenOptions={{
             headerTitle: () => (
@@ -44,7 +46,9 @@ export default function RootStack() {
           <Drawer.Screen
             name="DriverLogin"
             component={DriverLogin}
-            options={{ drawerLabel: 'Driver Login', headerShown: true }} // Allow navigation to DriverLogin
+            options={{
+              drawerLabel: 'Driver Login',
+            }}
           />
           <Drawer.Screen name="About" component={About} options={{ drawerLabel: 'About Glinda' }} />
           <Drawer.Screen

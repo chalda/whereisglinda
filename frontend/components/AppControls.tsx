@@ -5,18 +5,16 @@ import LocationTracker from './LocationTracker'; // Import LocationTracker for l
 import { AppContext } from '../context/AppContext'; // Import AppContext for global state
 import { createNewTrip, setRideStatus } from '../utils/api'; // Import updateAppState for API calls
 
-type AppControlsProps = {
-  onRefresh: () => void;
-};
+//type AppControlsProps
 
-const AppControls: React.FC<AppControlsProps> = ({ onRefresh }) => {
+const AppControls = () => {
   const { apiKey, userRole, appState, setAppState } = useContext(AppContext);
   const [geobox, setGeobox] = useState<string>(JSON.stringify(appState?.homeGeobox || []));
   const [trackingEnabled, setTrackingEnabled] = useState<boolean>(false);
 
-  const canEditAppStatus = userRole === 'admin';
+  const canEditAppStatus = userRole === 'admin' || userRole === 'driver';
   const canEditGeobox = userRole === 'admin';
-  const canEditTracking = userRole === 'admin' || userRole === 'driver' || userRole === 'bus';
+  const canEditTracking = userRole === 'admin' || userRole === 'bus';
   const canCreateNewTrip = userRole === 'admin' || userRole === 'driver' || userRole === 'bus';
 
   // const handleUpdateHomeGeobox = async () => {
@@ -35,9 +33,9 @@ const AppControls: React.FC<AppControlsProps> = ({ onRefresh }) => {
   // };
   const handleCreateNewTrip = async () => {
     try {
-      const newTripId = await createNewTrip(apiKey);
+      const response = await createNewTrip(apiKey);
       // Update app state with new trip ID
-      setAppState({ ...appState, tripId: newTripId.tripID });
+      setAppState({ ...appState, v: response.tripId });
     } catch (err) {
       console.error('Failed to create new trip:', err.message);
     }
@@ -45,7 +43,7 @@ const AppControls: React.FC<AppControlsProps> = ({ onRefresh }) => {
 
   const handleUpdateAppStatus = async (newStatus: string) => {
     try {
-      const newTripId = await setRideStatus(apiKey, newStatus);
+      const response = await setRideStatus(apiKey, newStatus);
       // Update app state with new trip ID
       setAppState({ ...appState, rideStatus: newStatus });
     } catch (err) {
@@ -53,33 +51,28 @@ const AppControls: React.FC<AppControlsProps> = ({ onRefresh }) => {
     }
   };
 
-  if (!apiKey) {
+  if (!userRole) {
     // If the user is not authenticated, only show the status as text
     return (
       <View style={styles.container}>
-        <Text style={styles.label}>App Status:</Text>
+        <Text style={styles.label}>Ride Status:</Text>
         <Text style={styles.text}>{appState?.rideStatus || 'N/A'}</Text>
-        <Button title="Refresh" onPress={onRefresh} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>App Status:</Text>
-      {canEditAppStatus ? (
-        <TextInput
-          style={styles.input}
-          value={appState.rideStatus}
-          onChangeText={handleUpdateAppStatus}
-          placeholder="Ride Status"
-        />
-      ) : (
-        <Text style={styles.text}>{appState?.rideStatus || 'N/A'}</Text>
-      )}
-      <Button title="Refresh" onPress={onRefresh} />
+      <Text style={styles.label}>Ride Status:</Text>
+      <TextInput
+        style={styles.input}
+        value={appState?.rideStatus}
+        onChangeText={handleUpdateAppStatus}
+        placeholder="Ride Status"
+        disabled={!canEditAppStatus}
+      />
 
-      {canCreateNewTrip && <Button title="Start New Trip" onPress={handleCreateNewTrip} />}
+      <Button title="Start New Trip" onPress={handleCreateNewTrip} disabled={!canCreateNewTrip} />
 
       <Text style={styles.label}>Geobox:</Text>
       {canEditGeobox ? (
@@ -93,18 +86,21 @@ const AppControls: React.FC<AppControlsProps> = ({ onRefresh }) => {
         <Text style={styles.text}>{JSON.stringify(appState?.homeGeobox || [])}</Text>
       )}
 
-      <Text style={styles.label}>Tracking:</Text>
-      {canEditTracking ? (
-        <Switch value={trackingEnabled} onValueChange={setTrackingEnabled} />
-      ) : (
-        <Text style={styles.text}>{trackingEnabled ? 'Enabled' : 'Disabled'}</Text>
-      )}
+      <Text style={styles.label}>Turn on bus tracking:</Text>
+      <Switch
+        value={trackingEnabled}
+        onValueChange={setTrackingEnabled}
+        disabled={!canEditTracking || appState?.rideStatus === 'Home'}
+      />
+      {appState.rideStatus === 'Home' ? (
+        <Text style={styles.text}>Tracking is turned off while inside the home geobox</Text>
+      ) : null}
 
       <LocationTracker
         apiKey={apiKey}
         trackingEnabled={trackingEnabled}
         rideStatus={appState?.rideStatus || ''}
-        tripId={appState?.tripId}
+        activeTripId={appState?.activeTripId}
         onTrackingDisabled={() => setTrackingEnabled(false)}
       />
     </View>

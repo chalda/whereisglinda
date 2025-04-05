@@ -11,16 +11,12 @@ const backendUrl: string = Constants.expoConfig.extra.backendUrl;
  * @param options - Fetch options (e.g., method, headers, body)
  * @returns A promise resolving to the JSON response
  */
-export const apiFetch = async <T>(
-  endpoint: string,
-  apiKey?: string,
-  options?: any,
-): Promise<T> => {
+export const apiFetch = async <T>(endpoint: string, apiKey?: string, options?: any): Promise<T> => {
   const url = `${backendUrl}${endpoint}`; // Ensure the endpoint is appended correctly
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...(apiKey ? { Authorization: apiKey } : {}), // Include Authorization header only if apiKey is provided
-    ...(options.headers || {}),
+    ...(options?.headers || {}),
   };
 
   const response = await fetch(url, { ...options, headers });
@@ -56,14 +52,14 @@ export const updateAppState = async (apiKey: string, updatedState: AppState) => 
 };
 
 export const setRideStatus = async (apiKey: string, rideStatus: string) => {
-  return apiFetch<AppState>('/state/rideStatus', apiKey, { method: 'POST' }, { rideStatus });
+  return apiFetch<AppState>('/state/rideStatus', apiKey, { method: 'POST', body: JSON.stringify({ rideStatus }) });
 };
 
 export const setHomeGeobox = async (
   apiKey: string,
   homeGeobox: [number, number, number, number]
 ) => {
-  return apiFetch<AppState>('/state/homeGeobox', apiKey, { method: 'POST' }, { homeGeobox });
+  return apiFetch<AppState>('/state/homeGeobox', apiKey, { method: 'POST', body: JSON.stringify({ homeGeobox }) });
 };
 
 /**
@@ -98,12 +94,12 @@ export const sendLocation = async (
   apiKey: string,
   latitude: number,
   longitude: number,
-  tripID: number
+  tripId: number
 ) => {
   const locationData = {
     latitude: latitude,
     longitude: longitude,
-    tripID: tripID,
+    tripId: tripId,
   };
 
   return apiFetch<Location>('/locations', apiKey, {
@@ -118,7 +114,7 @@ export const sendLocation = async (
  * @returns The new trip ID
  */
 export const createNewTrip = async (apiKey: string) => {
-  return apiFetch<{ tripID: number }>('/trip', apiKey, {
+  return apiFetch<{ tripId: number }>('/trip', apiKey, {
     method: 'POST',
   });
 };

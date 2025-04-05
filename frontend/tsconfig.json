@@ -8,8 +8,7 @@
     "esModuleInterop": true,
     "jsx": "react",
     "paths": {
-      "~/*": ["src/*"],
-      "react-native-maps": ["../../chalda/react-native-web-maps"]
+      "~/*": ["src/*"]
     },
     "target": "esnext",
     "module": "commonjs",
@@ -18,6 +17,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
   "exclude": ["node_modules"]
 }

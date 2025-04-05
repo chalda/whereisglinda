@@ -2,9 +2,14 @@ import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 
 import { AppContext } from '../context/AppContext'; // Import AppContext for global state
+import { type RootStackNavigation } from '../navigation';
 import { validateApiKey } from '../utils/api';
 
-const DriverLogin: React.FC<{ navigation: any }> = ({ navigation }) => {
+interface DriverLoginProps {
+  navigation: RootStackNavigation;
+}
+
+const DriverLogin: React.FC<DriverLoginProps> = ({ navigation }) => {
   const { setApiKey, setUserRole } = useContext(AppContext);
   const [inputApiKey, setInputApiKey] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -15,7 +20,8 @@ const DriverLogin: React.FC<{ navigation: any }> = ({ navigation }) => {
 
       if (response.success) {
         setApiKey(inputApiKey); // Save the API key in context
-        setUserRole(response.role); // Save the user role in context
+        //@ts-ignore-next-line
+        setUserRole(response.role);
         console.log('Login successful');
         navigation.navigate('Map'); // Navigate to the Map screen
       }
@@ -48,6 +54,9 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     marginBottom: 8,
+  },
+  loginButton: {
+    width: 100,
   },
   input: {
     borderWidth: 1,
