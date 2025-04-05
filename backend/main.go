@@ -55,9 +55,19 @@ func main() {
 }
 
 func populateDummyData() {
-	tripID := 1
+	// Create a new trip
+	trip := models.Trip{
+		Name:   "Dummy Trip",
+		Status: "ongoing",
+	}
+	err := storage.CreateTrip(storage.DB, &trip)
+	if err != nil {
+		log.Printf("Failed to insert dummy trip: %v", err)
+		return
+	}
+
 	// Insert dummy app state with a square mile in Bushwick, Brooklyn, NY
-	err := storage.UpdateAppState(models.AppState{
+	err = storage.UpdateAppState(models.AppState{
 		RideStatus: "Riding",
 		HomeGeobox: [4]models.Location{
 			{Latitude: 40.7062, Longitude: -73.9336}, // Top-Left
@@ -65,17 +75,24 @@ func populateDummyData() {
 			{Latitude: 40.6952, Longitude: -73.9202}, // Bottom-Right
 			{Latitude: 40.6952, Longitude: -73.9336}, // Bottom-Left
 		},
-		ActiveTripID: &tripID, // Add TripID to the AppState model
 	})
 	if err != nil {
 		log.Printf("Failed to insert dummy app state: %v", err)
+		return
+	}
+
+	// Get the active trip ID
+	tripID, err := storage.GetActiveTripID()
+	if err != nil {
+		log.Printf("Failed to get active trip ID: %v", err)
+		return
 	}
 
 	// Insert dummy locations using SaveLocation
 	dummyLocations := []models.TripLocation{
-		{Location: models.Location{Latitude: 40.7000, Longitude: -73.9300}, TripID: 1},
-		{Location: models.Location{Latitude: 40.7020, Longitude: -73.9250}, TripID: 1},
-		{Location: models.Location{Latitude: 40.7040, Longitude: -73.9280}, TripID: 1},
+		{Location: models.Location{Latitude: 40.7000, Longitude: -73.9300}, TripID: *tripID},
+		{Location: models.Location{Latitude: 40.7020, Longitude: -73.9250}, TripID: *tripID},
+		{Location: models.Location{Latitude: 40.7040, Longitude: -73.9280}, TripID: *tripID},
 	}
 	for _, location := range dummyLocations {
 		err := storage.SaveTripLocation(location)

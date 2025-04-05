@@ -7,7 +7,7 @@ import (
 )
 
 func GetActiveTripID() (*int, error) {
-	query := "SELECT MAX(trip_id) FROM trips WHERE expired_time IS NULL"
+	query := "SELECT MAX(trip_id) FROM trips WHERE end_time IS NULL"
 	row := DB.QueryRow(query)
 	var tripID sql.NullInt64
 	err := row.Scan(&tripID)

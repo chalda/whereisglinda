@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"log"
 	"sync"
 	"whereisglinda-backend/models"
 	"whereisglinda-backend/storage"
@@ -17,6 +18,7 @@ var (
 func GetAppState(w http.ResponseWriter, r *http.Request) {
 	appState, err := storage.GetAppState()
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "Failed to get app state", http.StatusInternalServerError)
 		return
 	}

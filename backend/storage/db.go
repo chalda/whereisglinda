@@ -37,15 +37,6 @@ func createTables() {
 		log.Fatalf("Failed to create trips table: %v", err)
 	}
 
-	// Insert default trip ID if not exists
-	_, err = DB.Exec(`
-        INSERT OR IGNORE INTO trips (currentTripID)
-        VALUES (1)
-    `)
-	if err != nil {
-		log.Fatalf("Failed to insert default trip ID: %v", err)
-	}
-
 	// Create locations table
 	_, err = DB.Exec(`
         CREATE TABLE IF NOT EXISTS locations (
