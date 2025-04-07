@@ -9,6 +9,7 @@ module.exports = function (api) {
     plugins:
       platform === 'web'
         ? [
+            'react-native-web',
             [
               'module-resolver',
               {
@@ -20,9 +21,6 @@ module.exports = function (api) {
             ],
             'react-native-reanimated/plugin',
           ]
-        : [
-            'react-native-reanimated/plugin',
-            
-          ],
+        : ['react-native-reanimated/plugin'],
   };
 };

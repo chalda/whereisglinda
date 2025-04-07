@@ -1,5 +1,5 @@
 import Constants from 'expo-constants';
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, Platform } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, MapViewProps, Polyline } from 'react-native-maps';
 
@@ -19,13 +19,17 @@ const initialRegion: MapViewProps['region'] = {
 };
 
 const MapContent: React.FC<MapContentProps> = ({ locations }) => {
+  const [region, setRegion] = useState<MapViewProps['region'] | null>(null);
+  const [currentZoom, setCurrentZoom] = useState<number | null>(null);
   return (
     <View style={styles.container}>
       <MapView
         style={styles.map}
         provider={PROVIDER_GOOGLE}
-        region={initialRegion}
-        zoom={15}
+        initialRegion={initialRegion}
+        region={region}
+        // zoom={currentZoom}
+        // zoom={15}
         {...(Platform.OS === 'web' && { googleMapsApiKey })}>
         <Polyline
           coordinates={locations.map((location) => ({
@@ -43,6 +47,10 @@ const MapContent: React.FC<MapContentProps> = ({ locations }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    minHeight: 200,
+    minWidth: 200,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   map: {
     ...StyleSheet.absoluteFillObject,

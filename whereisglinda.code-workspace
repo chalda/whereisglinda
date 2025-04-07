@@ -10,6 +10,7 @@
     "settings": {
         "files.exclude": {
             "frontend/.expo": true
-        }
+        },
+        "CodeGPT.apiKey": "CodeGPT Plus Beta"
     }
 }

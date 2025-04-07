@@ -28,6 +28,19 @@ const cfg = {
           isIosBackgroundLocationEnabled: true,
         },
       ],
+      [
+        'expo-build-properties',
+        {
+          android: {
+            compileSdkVersion: 21,
+            targetSdkVersion: 21,
+            buildToolsVersion: '21.0.0',
+          },
+          ios: {
+            deploymentTarget: '14.0',
+          },
+        },
+      ],
     ],
     orientation: 'portrait',
     icon: './assets/icon.png',
