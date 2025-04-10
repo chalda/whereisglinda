@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 
 import { AppContext } from '../context/AppContext'; // Import AppContext for global state
-import { type RootStackNavigation } from '../navigation';
+import { type RootStackNavigation } from '../navigation/RootStack';
 import { validateApiKey } from '../utils/api';
 
 interface DriverLoginProps {

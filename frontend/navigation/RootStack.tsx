@@ -1,7 +1,20 @@
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import { NavigationContainer, DefaultTheme, NavigationProp } from '@react-navigation/native';
+import '../utils/gesture-handler';
+import { Platform, Image } from 'react-native';
+
+// if (Platform.OS !== 'web') {
+//   // Import gesture-handler only for native platforms (iOS and Android)
+//   require('react-native-gesture-handler');
+// }
+
+import { createDrawerNavigator, DrawerNavigatorProps } from '@react-navigation/drawer';
+import {
+  NavigationContainer,
+  DefaultTheme,
+  NavigationProp,
+  useNavigationContainerRef,
+} from '@react-navigation/native';
 import React from 'react';
-import { Image } from 'react-native';
+// import { Image } from 'react-native';
 
 import { AppProvider } from '../context/AppContext'; // Import AppProvider
 import About from '../screens/About';
@@ -19,13 +32,17 @@ export type RootStackParamList = {
 export type RootStackNavigation = NavigationProp<RootStackParamList>;
 
 const Drawer = createDrawerNavigator<RootStackParamList>();
+const RootStack = () => {
+  // const navigationRef = useNavigationContainerRef();
 
-export default function RootStack() {
+  // useLogger(navigationRef);
+  // <NavigationContainer theme={DefaultTheme} ref={navigationRef}>
+
   return (
     <AppProvider>
       <NavigationContainer theme={DefaultTheme}>
         <Drawer.Navigator
-          id={'root-router'}
+          // id={'root-router'} // ts-ignore
           initialRouteName="Map" // Set Map as the initial route
           screenOptions={{
             headerTitle: () => (
@@ -37,6 +54,8 @@ export default function RootStack() {
               />
             ),
             headerTitleAlign: 'center',
+            drawerActiveBackgroundColor: '#e0e0e0',
+            drawerInactiveTintColor: '#000',
           }}>
           <Drawer.Screen
             name="Map"
@@ -60,4 +79,7 @@ export default function RootStack() {
       </NavigationContainer>
     </AppProvider>
   );
-}
+};
+
+RootStack.displayName = 'RootStack';
+export default RootStack;

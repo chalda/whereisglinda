@@ -19,9 +19,12 @@ export interface AppContextProps {
 
 export const AppContext = createContext<AppContextProps>({} as AppContextProps);
 
-export const AppProvider: React.FC = ({ children }: { children: React.ReactNode }) => {
+export type AppProviderProps = {
+  children: React.ReactNode;
+};
+export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [apiKey, setApiKey] = useState<string>('');
-  const [userRole, setUserRole] = useState<UserRole>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [appState, setAppState] = useState<AppState | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
   const [activeTripId, setActiveTripId] = useState<number | null>(null);
