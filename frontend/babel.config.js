@@ -9,6 +9,7 @@ module.exports = function (api) {
       //'@babel/preset-typescript',
       //   'react-native-web',
       'react-native-paper/babel',
+      'react-native-web-google-api-maps/babel',
       ['@babel/plugin-proposal-decorators', { legacy: true }],
       ['@babel/plugin-proposal-class-properties', { loose: true }],
       '@babel/plugin-proposal-optional-chaining',

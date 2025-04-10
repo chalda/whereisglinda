@@ -4,10 +4,10 @@ const { wrapWithReanimatedMetroConfig } = require('react-native-reanimated/metro
 
 const config = getDefaultConfig(__dirname);
 
-config.watchFolders = [path.resolve(__dirname, '../../chalda/react-native-web-maps')];
+// config.watchFolders = [path.resolve(__dirname, '../../chalda/react-native-web-maps')];
 
 const ALIASES_WEB = {
-  'react-native-maps': path.resolve(__dirname, '../../chalda/react-native-web-maps'),
+  'react-native-maps': path.resolve(__dirname, 'node_modules/react-native-web-google-api-maps'),
 };
 
 // config.resolver.extraNodeModules = {
@@ -23,5 +23,5 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   return context.resolveRequest(context, moduleName, platform);
 };
 
-//module.exports = wrapWithReanimatedMetroConfig(config);
-module.exports = config;
+module.exports = wrapWithReanimatedMetroConfig(config);
+//module.exports = config;

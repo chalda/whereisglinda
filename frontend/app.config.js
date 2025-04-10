@@ -10,7 +10,7 @@ const cfg = {
   platforms: ['ios', 'android', 'web'],
   extra: {
     googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
-    'react-native-web-maps': '../../chalda/react-native-web-maps',
+    //'react-native-web-maps': '../../chalda/react-native-web-maps',
     backendUrl: process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:8080',
   },
   experiments: {

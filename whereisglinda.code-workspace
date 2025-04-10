@@ -2,9 +2,6 @@
     "folders": [
         {
             "path": "."
-        },
-        {
-            "path": "../chalda/react-native-web-maps"
         }
     ],
     "settings": {
