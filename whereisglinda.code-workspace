@@ -1,13 +1,137 @@
 {
     "folders": [
         {
-            "path": "."
+            "path": "./server", // Go server folder
+            "settings": {
+                "editor.defaultFormatter": "golang.go",
+                "gopls": {
+                    "buildFlags": ["-tags=integration"],
+                    "usePlaceholders": true,
+                    "analyses": {
+                        "unusedparams": true
+                    }
+                }
+            }
+        },
+        {
+            "path": "./app", // Expo React Native app folder
+            "settings": {
+                "editor.defaultFormatter": "esbenp.prettier-vscode",
+                "javascript.validate.enable": false,
+                "typescript.tsserver.experimental.enableProjectDiagnostics": true
+            }
+        },
+        {
+            "path": "./", // Monorepo root folder for accessing root-level filess
+            "name": "reporoot" // Custom name for clarity
         }
     ],
     "settings": {
-        "files.exclude": {
-            "frontend/.expo": true
+        "[javascript]": {
+            "editor.defaultFormatter": "esbenp.prettier-vscode"
         },
-        "CodeGPT.apiKey": "CodeGPT Plus Beta"
+        "[typescript]": {
+            "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[go]": {
+            "editor.defaultFormatter": "golang.go"
+        },
+        "eslint.workingDirectories": [
+            { "directory": "./app", "changeProcessCWD": true }
+        ],
+        "explorer.compactFolders": false,
+        // General settings
+        "editor.experimentalEditContextEnabled": true,
+        "editor.experimental.preferTreeSitter.typescript": true,
+
+        // Go-specific settings
+        "gopls": {
+            "buildFlags": ["-tags=integration"],
+            "usePlaceholders": true,
+            "analyses": {
+                "unusedparams": true
+            }
+        },
+
+        // React Native-specific settings
+        "javascript.validate.enable": false,
+        "typescript.tsserver.experimental.enableProjectDiagnostics": true,
+        "monorepoWorkspace.folders.custom": [
+            {
+                "path": "./app",
+                "name": "Expo App"
+            },
+            {
+                "path": "./server",
+                "name": "Go Server"
+            }
+        ]
+    },
+    "launch": {
+        "configurations": [
+            {
+                // Go server launch configuration
+                "type": "go",
+                "request": "launch",
+                "name": "Launch Server",
+                "program": "${workspaceFolder}/server/main.go",
+                "preLaunchTask": "go: build package"
+            },
+            {
+                // Expo iOS simulator launch configuration
+                "type": "expo",
+                "request": "launch",
+                "name": "Run iOS Simulator",
+                "platform": "ios",
+                "program": "${workspaceFolder}/app"
+            },
+            {
+                // Expo Android emulator launch configuration
+                "type": "expo",
+                "request": "launch",
+                "name": "Run Android Emulator",
+                "platform": "android",
+                "program": "${workspaceFolder}/app"
+            }
+        ],
+        "compounds": [
+            {
+                "name": "Run Both",
+                "configurations": ["Launch Server", "Run iOS Simulator"]
+            }
+        ]
+    },
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "Start Go Server",
+                "type": "shell",
+                "command": "go run ./server/main.go",
+                "problemMatcher": []
+            },
+            {
+                "label": "Start Expo App",
+                "type": "shell",
+                "command": "expo start",
+                "problemMatcher": []
+            },
+            {
+                "label": "Start Both",
+                "dependsOn": ["Start Go Server", "Start Expo App"],
+                "problemMatcher": []
+            }
+        ]
+    },
+    "extensions": {
+        "recommendations": [
+            "eamodio.gitlens",
+            "ms-vscode.vscode-typescript-next",
+            "golang.go", // Go extension
+            "esbenp.prettier-vscode", // Prettier for formatting
+            "dbaeumer.vscode-eslint", // ESLint for JavaScript/TypeScript
+            "formulahendry.auto-close-tag", // Auto-close HTML/JSX tags
+            "formulahendry.auto-rename-tag" // Auto-rename HTML/JSX tags
+        ]
     }
 }

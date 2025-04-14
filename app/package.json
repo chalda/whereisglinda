@@ -77,9 +77,5 @@
     "prettier": "^3.5.3",
     "ts-node": "^10.9.2",
     "typescript": "~5.8.3"
-  },
-  "eslintConfig": {
-    "extends": "universe/native",
-    "root": true
   }
 }
