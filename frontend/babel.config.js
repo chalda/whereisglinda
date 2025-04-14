@@ -1,17 +1,11 @@
 module.exports = function (api) {
   api.cache(true);
 
-  //const platform = api.caller((caller) => caller && caller.platform);
-
   return {
-    presets: ['@babel/preset-typescript', ['babel-preset-expo', { reanimated: false }]],
+    presets: ['babel-preset-expo'],
     plugins: [
-      //'@babel/preset-typescript',
       //   'react-native-web',
-      'react-native-paper/babel',
-      'react-native-web-google-api-maps/babel',
-      ['@babel/plugin-proposal-decorators', { legacy: true }],
-      ['@babel/plugin-proposal-class-properties', { loose: true }],
+      //    'react-native-web-google-api-maps/babel-plugin',
       '@babel/plugin-proposal-optional-chaining',
       '@babel/plugin-proposal-optional-catch-binding',
       '@babel/plugin-proposal-nullish-coalescing-operator',
@@ -20,19 +14,16 @@ module.exports = function (api) {
       '@babel/plugin-proposal-export-namespace-from',
       '@babel/plugin-proposal-export-default-from',
       '@babel/plugin-proposal-do-expressions',
-      'react-native-reanimated/plugin',
     ],
+    // overrides: [
+    //   {
+    //     test: (fileName) => !fileName.includes('node_modules/react-native-maps'),
+    //     plugins: [
+    //       ['@babel/plugin-transform-class-properties', { loose: true }],
+    //       ['@babel/plugin-transform-private-methods', { loose: true }],
+    //       ['@babel/plugin-transform-private-property-in-object', { loose: true }],
+    //     ],
+    //   },
+    // ],
   };
 };
-// ...(platform === 'web'
-//   ? [
-//       [
-//         'module-resolver',
-//         {
-//           alias: {
-//             '^react-native-maps$': 'react-native-web-maps',
-//           },
-//         },
-//       ],
-//     ]
-//   : []),

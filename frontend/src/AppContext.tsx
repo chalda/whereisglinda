@@ -1,8 +1,8 @@
 import React, { createContext, useState, useEffect } from 'react';
 
-import { AppState, Location, UserRole } from '../types';
-import { fetchLocations, fetchAppState } from '../utils/api';
-import useSubscribe from '../utils/useSubscribe';
+import { AppState, Location, UserRole } from './types';
+import { fetchLocations, fetchAppState } from './utils/api';
+import useSubscribe from './utils/useSubscribe';
 
 export interface AppContextProps {
   apiKey: string;

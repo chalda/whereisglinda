@@ -2,7 +2,7 @@ import Constants from 'expo-constants';
 
 import { Location, AppState } from '../types'; // Import the Location and AppState types
 
-const backendUrl: string = Constants.expoConfig.extra.backendUrl;
+const backendUrl: string = Constants?.expoConfig?.extra?.backendUrl;
 
 /**
  * Utility function to make API calls
@@ -52,14 +52,20 @@ export const updateAppState = async (apiKey: string, updatedState: AppState) => 
 };
 
 export const setRideStatus = async (apiKey: string, rideStatus: string) => {
-  return apiFetch<AppState>('/state/rideStatus', apiKey, { method: 'POST', body: JSON.stringify({ rideStatus }) });
+  return apiFetch<AppState>('/state/rideStatus', apiKey, {
+    method: 'POST',
+    body: JSON.stringify({ rideStatus }),
+  });
 };
 
 export const setHomeGeobox = async (
   apiKey: string,
   homeGeobox: [number, number, number, number]
 ) => {
-  return apiFetch<AppState>('/state/homeGeobox', apiKey, { method: 'POST', body: JSON.stringify({ homeGeobox }) });
+  return apiFetch<AppState>('/state/homeGeobox', apiKey, {
+    method: 'POST',
+    body: JSON.stringify({ homeGeobox }),
+  });
 };
 
 /**

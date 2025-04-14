@@ -3,13 +3,12 @@ import { View, StyleSheet } from 'react-native';
 
 import AppControls from '../components/AppControls';
 import MapContent from '../components/MapContent';
-import { AppContext } from '../context/AppContext';
+import { AppContext } from '../AppContext';
 
-import {RootStackParamList } from '../navigation/RootStack';
+import { RootStackParamList } from '../navigation/RootStack';
 import { validateApiKey } from '../utils/api';
 
 type MapScreenRouteProp = RouteProp<RootStackParamList, 'Map'>;
-
 
 const Map: React.FC = () => {
   const { locations } = useContext(AppContext);

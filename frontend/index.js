@@ -1,34 +1,14 @@
-//import 'react-native-reanimated';
-import './utils/gesture-handler';
+import './gesture-handler';
 
-//import 'react-native-gesture-handler';
+import '@expo/metro-runtime'; // Necessary for Fast Refresh on Web
 import { registerRootComponent } from 'expo';
-//////import { AppRegistry, Platform } from 'react-native';
 
-import RootStack from './navigation/RootStack';
+//import { AppRegistry } from 'react-native';
 
-// use for expo navigation:import { registerRootComponent } from 'expo';
-//registerRootComponent(RootStack);
+import { App } from './src/App';
 
-// registerRootComponent(RootStack);
-// AppRegistry.registerComponent('main', () => RootStack);
-// AppRegistry.runApplication('main', {
-//   // eslint-disable-next-line no-undef
-//   rootTag: document.getElementById('root'),
-// });
-
-// if (Platform.OS === 'web') {
-//   AppRegistry.registerComponent('main', () => RootStack);
-//   AppRegistry.runApplication('main', {
-//     // eslint-disable-next-line no-undef
-//     rootTag: document.getElementById('root'),
-//   });
-// } else {
-//   registerRootComponent(App);
-// }
-
-// export default function App() {
-//   return <RootStack />;
-// }
-
-registerRootComponent(RootStack);
+// registerRootComponent calls AppRegistry.registerComponent('main', () => App);
+// It also ensures that whether you load the app in Expo Go or in a native build,
+// the environment is set up appropriately
+registerRootComponent(App);
+//AppRegistry.registerComponent('whereisglinda', () => App);

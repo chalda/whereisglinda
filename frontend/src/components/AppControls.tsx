@@ -2,7 +2,7 @@ import React, { useContext, useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Switch } from 'react-native';
 
 import LocationTracker from './LocationTracker'; // Import LocationTracker for location tracking
-import { AppContext } from '../context/AppContext'; // Import AppContext for global state
+import { AppContext } from '../AppContext'; // Import AppContext for global state
 import { createNewTrip, setRideStatus } from '../utils/api'; // Import updateAppState for API calls
 
 //type AppControlsProps
