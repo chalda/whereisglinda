@@ -2,6 +2,15 @@
   "name": "whereisglinda",
   "version": "1.0.0",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:chalda/whereisglinda.git"
+  },
+  "author": {
+    "name": "Alex Chaldyshev",
+    "email": "alex.chaldyshev+github@gmail.com",
+    "url": "https://github.com/chalda"
+  },
   "main": "index.js",
   "scripts": {
     "android": "expo run:android",
@@ -60,6 +69,7 @@
     "@react-native/metro-babel-transformer": "^0.79.0",
     "@react-native/metro-config": "^0.79.0",
     "@react-navigation/devtools": "^7.0.25",
+    "@types/google.maps": "^3.58.1",
     "@types/node": "^22.14.0",
     "@types/react": "~18.3.20",
     "@types/react-native-web": "^0.19.0",

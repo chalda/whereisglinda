@@ -5,8 +5,9 @@ import AppControls from '../components/AppControls';
 import MapContent from '../components/MapContent';
 import { AppContext } from '../AppContext';
 
+import { RouteProp } from '@react-navigation/native';
+
 import { RootStackParamList } from '../navigation/RootStack';
-import { validateApiKey } from '../utils/api';
 
 type MapScreenRouteProp = RouteProp<RootStackParamList, 'Map'>;
 

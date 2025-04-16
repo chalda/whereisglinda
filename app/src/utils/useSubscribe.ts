@@ -4,7 +4,7 @@ import EventSource from 'react-native-sse';
 
 import { Location } from '../types'; // Import the Location type
 
-const backendUrl: string = Constants.expoConfig.extra.backendUrl;
+const backendUrl: string = Constants?.expoConfig?.extra?.backendUrl;
 const es = new EventSource(`${backendUrl}/locations/subscribe`);
 
 type UseSubscribeProps = {
@@ -21,7 +21,7 @@ const useSubscribe = ({ onLocationUpdate, enabled }: UseSubscribeProps) => {
 
       es.addEventListener('message', (event) => {
         try {
-          const location: Location = JSON.parse(event.data);
+          const location: Location = JSON.parse(event?.data);
           onLocationUpdate(location);
         } catch (err) {
           console.error('Failed to parse location update:', err);

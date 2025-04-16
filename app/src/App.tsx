@@ -2,28 +2,46 @@ import { Assets as NavigationAssets } from '@react-navigation/elements';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { Asset } from 'expo-asset';
 import * as SplashScreen from 'expo-splash-screen';
-import React from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 
 import { AppProvider } from './AppContext';
 import { RootStack } from './navigation/RootStack';
 
-Asset.loadAsync([...NavigationAssets]);
+const assetsToLoad = [
+  ...NavigationAssets,
+  require('./assets/glinda_icon.png'),
+  require('./assets/octopus_icon.png'),
+];
 
 SplashScreen.preventAutoHideAsync();
+
 export function App() {
+  const [appReady, setAppReady] = useState(false);
+
+  const loadAssetsAsync = useCallback(async () => {
+    try {
+      await Asset.loadAsync(assetsToLoad);
+    } catch (e) {
+      console.warn('Asset loading failed:', e);
+    } finally {
+      setAppReady(true);
+      SplashScreen.hideAsync();
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAssetsAsync();
+  }, []);
+
+  if (!appReady) return null;
+
   return (
     <AppProvider>
       <NavigationContainer
         theme={DefaultTheme}
         linking={{
           enabled: 'auto',
-          prefixes: [
-            // Change the scheme to match your app's scheme defined in app.json
-            'glindaapp://',
-          ],
-        }}
-        onReady={() => {
-          SplashScreen.hideAsync();
+          prefixes: ['glindaapp://'],
         }}>
         <RootStack />
       </NavigationContainer>
