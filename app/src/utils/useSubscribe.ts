@@ -2,10 +2,9 @@ import Constants from 'expo-constants';
 import { useEffect, useRef } from 'react';
 import EventSource from 'react-native-sse';
 
-import { Location } from '../types'; // Import the Location type
+import { Location } from '../types';
 
 const backendUrl: string = Constants?.expoConfig?.extra?.backendUrl;
-const es = new EventSource(`${backendUrl}/locations/subscribe`);
 
 type UseSubscribeProps = {
   onLocationUpdate: (location: Location) => void;
@@ -13,9 +12,14 @@ type UseSubscribeProps = {
 };
 
 const useSubscribe = ({ onLocationUpdate, enabled }: UseSubscribeProps) => {
+  const eventSourceRef = useRef<EventSource | null>(null);
+
   useEffect(() => {
-    if (enabled) {
-      es.addEventListener('open', (event) => {
+    if (enabled && !eventSourceRef.current) {
+      const es = new EventSource(`${backendUrl}/locations/subscribe`);
+      eventSourceRef.current = es;
+
+      es.addEventListener('open', () => {
         console.log('Open SSE connection.');
       });
 
@@ -33,21 +37,22 @@ const useSubscribe = ({ onLocationUpdate, enabled }: UseSubscribeProps) => {
         es.close();
       });
 
-      es.addEventListener('close', (event) => {
+      es.addEventListener('close', () => {
         console.log('Close SSE connection.');
       });
 
       es.open();
-    } else {
-      es.removeAllEventListeners();
-      es.close();
     }
 
     return () => {
-      es.removeAllEventListeners();
-      es.close();
+      if (eventSourceRef.current) {
+        eventSourceRef.current.removeAllEventListeners();
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+        console.log('Cleaned up SSE connection.');
+      }
     };
-  }, [onLocationUpdate, enabled]);
+  }, [enabled]); // Only reinitialize when `enabled` changes
 };
 
 export default useSubscribe;

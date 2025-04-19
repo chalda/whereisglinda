@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import debounce from 'lodash.debounce';
 
 import { AppState, Location, UserRole } from './types';
 import { fetchLocations, fetchAppState } from './utils/api';
@@ -31,24 +32,36 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [locationSubscriptionEnabled, setLocationSubscriptionEnabled] = useState(false);
 
   useEffect(() => {
-    const intervalId = setInterval(async () => {
+    const fetchState = async () => {
       try {
         const data = await fetchAppState();
         setAppState(data);
       } catch (err) {
         console.error('Failed to fetch app state:', err.message);
       }
-    }, 30 * 1000); // 30 seconds
+    };
 
-    return () => clearInterval(intervalId);
+    const intervalId = setInterval(fetchState, 30 * 1000); // 30 seconds
+
+    return () => {
+      clearInterval(intervalId);
+    };
   }, []);
 
   useEffect(() => {
-    if (appState && appState?.rideStatus !== 'Home') {
-      setLocationSubscriptionEnabled(true);
+    const debounceSetSubscription = debounce((enabled: boolean) => {
+      setLocationSubscriptionEnabled(enabled);
+    }, 1000); // Debounce to 1 second
+
+    if (appState && appState.rideStatus !== 'Home') {
+      debounceSetSubscription(true);
     } else {
-      setLocationSubscriptionEnabled(false);
+      debounceSetSubscription(false);
     }
+
+    return () => {
+      debounceSetSubscription.cancel(); // Cancel debounce on cleanup
+    };
   }, [appState]);
 
   const loadAppState = async () => {
