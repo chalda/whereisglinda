@@ -3,7 +3,7 @@
   "compilerOptions": {
     "strict": false,
     "strictNullChecks": true,
-    "types": ["react-native", "node", "google.maps"],
+    "types": ["react-native", "node", "react-native-maps"],
     "allowSyntheticDefaultImports": true,
     "baseUrl": "./",
     "esModuleInterop": true,

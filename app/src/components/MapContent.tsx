@@ -1,6 +1,8 @@
 import Constants from 'expo-constants';
+import { Asset } from 'expo-asset';
+
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, View, Platform, Image, Text } from 'react-native';
+import { Animated, Easing, StyleSheet, View, Platform, Text, Image } from 'react-native';
 import MapView, {
   PROVIDER_GOOGLE,
   MapViewProps,
@@ -11,6 +13,19 @@ import MapView, {
   Callout,
 } from 'react-native-maps';
 import { Location } from '../types';
+
+// if (Platform.OS === 'web') {
+//   // ts-ignore-next-line
+//   Image.resolveAssetSource = (source) => {
+//     uri: source;
+//   };
+// }
+
+// {/* <Image source={Asset.fromModule(require('../assets/logo.png')) */}
+
+const bus = Asset.fromModule(require('../assets/glinda_icon.png'));
+console.log(bus);
+//const bus = Image.resolveAssetSource(glinda_icon_source);
 
 type MapContentProps = {
   locations: Location[];
@@ -188,7 +203,7 @@ const MapContent: React.FC<MapContentProps> = ({ locations, geofence }) => {
               longitude: lastLocation.longitude,
             }}
             anchor={{ x: 0.5, y: 0.5 }}
-            image={require('../assets/glinda_icon.png')}
+            image={bus.uri}
             title="Last Known Location">
             {/* <Animated.View style={{ transform: [{ rotate: tilt }] }}>
               <Image
@@ -197,11 +212,11 @@ const MapContent: React.FC<MapContentProps> = ({ locations, geofence }) => {
                 resizeMode="contain"
               />
             </Animated.View> */}
-            {/* <Callout>
+            <Callout>
               <View style={{ padding: 4 }}>
-                <Text>Last update: {getTimeAgo(lastLocation.timestamp)}</Text>
+                <Text>Last known location</Text>
               </View>
-            </Callout> */}
+            </Callout>
           </Marker>
         )}
 
