@@ -65,7 +65,8 @@
                 "path": "./server",
                 "name": "Go Server"
             }
-        ]
+        ],
+        "nxConsole.nxWorkspacePath": ".."
     },
     "launch": {
         "configurations": [
@@ -74,7 +75,7 @@
                 "type": "go",
                 "request": "launch",
                 "name": "Launch Server",
-                "program": "${workspaceFolder}/server/main.go",
+                "program": "./server/main.go",
                 "preLaunchTask": "go: build package"
             },
             {
