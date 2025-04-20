@@ -3,9 +3,9 @@ import { RouteProp, useRoute } from '@react-navigation/native';
 import { ScreenContent } from '../components/ScreenContent';
 import { StyleSheet, View, Text } from 'react-native';
 
-import { RootStackParamList } from '../navigation/RootStack';
+import { HeaderNavigatorParamList } from '../navigation';
 
-type AboutScreenRouteProp = RouteProp<RootStackParamList, 'About'>;
+type AboutScreenRouteProp = RouteProp<HeaderNavigatorParamList, 'About'>;
 
 const About = () => {
   const router = useRoute<AboutScreenRouteProp>();

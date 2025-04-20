@@ -5,7 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useCallback, useState } from 'react';
 
 import { AppProvider } from './AppContext';
-import { RootStack } from './navigation/RootStack';
+import HeaderNavigator from './navigation';
 
 const assetsToLoad = [
   ...NavigationAssets,
@@ -45,7 +45,7 @@ export function App() {
           enabled: 'auto',
           prefixes: ['glindaapp://'],
         }}>
-        <RootStack />
+        <HeaderNavigator />
       </NavigationContainer>
     </AppProvider>
   );

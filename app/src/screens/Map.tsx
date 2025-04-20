@@ -7,9 +7,9 @@ import { AppContext } from '../AppContext';
 
 import { RouteProp } from '@react-navigation/native';
 
-import { RootStackParamList } from '../navigation/RootStack';
+import { HeaderNavigatorParamList } from '../navigation';
 
-type MapScreenRouteProp = RouteProp<RootStackParamList, 'Map'>;
+type MapScreenRouteProp = RouteProp<HeaderNavigatorParamList, 'Map'>;
 
 const Map: React.FC = () => {
   const { locations, appState } = useContext(AppContext);
