@@ -12,12 +12,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width: screenWidth } = Dimensions.get('window');
 const IS_SMALL_SCREEN = screenWidth < 480;
-const TIRE_SIZE = IS_SMALL_SCREEN ? screenWidth * 0.3 : screenWidth * 0.19;
+const TIRE_SIZE = IS_SMALL_SCREEN ? screenWidth * 0.26 : screenWidth * 0.17;
 const CENTER = TIRE_SIZE / 2;
 
 const BUTTONS = [
   { label: 'Hire', route: 'Hire' },
-  { label: 'Find Glinda', route: 'Map' },
+  { label: 'Find Glinda', route: 'MapScreen' },
   { label: 'About', route: 'About' },
 ];
 
@@ -25,7 +25,7 @@ const PARALLAX_CROP_HEIGHT = 260;
 const PARALLAX_TOP_OFFSET = 60;
 
 const Header = ({ navigation }) => {
-  const [active, setActive] = useState('Map');
+  const [active, setActive] = useState('Find Glinda');
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const parallaxAnim = useRef(new Animated.Value(0)).current;
 
@@ -70,9 +70,7 @@ const Header = ({ navigation }) => {
                 key={btn.label}
                 onPress={() => {
                   setActive(btn.label);
-                  if (navigation?.navigate && typeof navigation.navigate === 'function') {
-                    navigation.navigate(btn.route);
-                  }
+                  navigation.navigate(btn.route);
                   triggerSpin();
                 }}
                 style={[
@@ -127,15 +125,15 @@ const Header = ({ navigation }) => {
         style={[
           styles.tireContainer,
           {
-            width: TIRE_SIZE * 1.15,
-            height: TIRE_SIZE * 1.15,
-            borderRadius: (TIRE_SIZE * 1.15) / 2,
+            width: TIRE_SIZE * 1.1,
+            height: TIRE_SIZE * 1.1,
+            borderRadius: (TIRE_SIZE * 1.1) / 2,
             transform: [{ rotate: spin }],
           },
         ]}>
         <LinearGradient
           colors={['#333', '#000']}
-          style={[StyleSheet.absoluteFill, { borderRadius: (TIRE_SIZE * 1.15) / 2 }]}
+          style={[StyleSheet.absoluteFill, { borderRadius: (TIRE_SIZE * 1.1) / 2 }]}
           start={{ x: 0.3, y: 0.3 }}
           end={{ x: 0.7, y: 0.7 }}
         />
@@ -166,7 +164,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFD800',
     width: '100%',
     paddingTop: 6,
-    paddingBottom: 10,
+    paddingBottom: 14,
     paddingHorizontal: 10,
     alignItems: 'center',
     position: 'relative',
@@ -191,7 +189,7 @@ const styles = StyleSheet.create({
   cityBand: {
     backgroundColor: '#a0c4ff',
     width: '100%',
-    height: TIRE_SIZE * 0.18,
+    height: TIRE_SIZE * 0.14,
     alignItems: 'center',
     justifyContent: 'flex-end',
     overflow: 'hidden',
@@ -211,16 +209,15 @@ const styles = StyleSheet.create({
   bottomBand: {
     backgroundColor: '#777',
     width: '100%',
-    paddingVertical: 12,
+    paddingVertical: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 2, // <-- above the background
-    marginTop: TIRE_SIZE * 0.25, // show below the tire
+    zIndex: 1,
+    marginTop: TIRE_SIZE * 0.15,
   },
-
   tireContainer: {
     position: 'absolute',
-    top: TIRE_SIZE * 0.15,
+    top: TIRE_SIZE * 0.18,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 8,
