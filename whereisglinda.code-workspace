@@ -1,7 +1,7 @@
 {
     "folders": [
         {
-            "path": "./server", // Go server folder
+            "path": "./server",
             "settings": {
                 "editor.defaultFormatter": "golang.go",
                 "gopls": {
@@ -14,16 +14,12 @@
             }
         },
         {
-            "path": "./app", // Expo React Native app folder
+            "path": "./app",
             "settings": {
                 "editor.defaultFormatter": "esbenp.prettier-vscode",
                 "javascript.validate.enable": false,
                 "typescript.tsserver.experimental.enableProjectDiagnostics": true
             }
-        },
-        {
-            "path": "./", // Monorepo root folder for accessing root-level filess
-            "name": "reporoot" // Custom name for clarity
         }
     ],
     "settings": {

@@ -99,5 +99,24 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
 });
+/**
+ * #nav-bar {
+border-radius: 20px !important;
+margin-block: 0 5px !important;
+margin-inline: 10px !important;
+--toolbar-start-end-padding: 8px !important;
+}
+
+#nav-bar #back-button image {
+border-top-left-radius: 50% !important;
+border-bottom-left-radius: 50% !important;
+}
+
+#PanelUI-button .toolbarbutton-badge-stack {
+border-top-right-radius: 50% !important;
+border-bottom-right-radius: 50% !important;
+}
+
+ */
 
 export default Header;
