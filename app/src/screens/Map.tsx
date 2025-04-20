@@ -12,12 +12,16 @@ import { RootStackParamList } from '../navigation/RootStack';
 type MapScreenRouteProp = RouteProp<RootStackParamList, 'Map'>;
 
 const Map: React.FC = () => {
-  const { locations } = useContext(AppContext);
+  const { locations, appState } = useContext(AppContext);
 
   return (
     <View style={styles.container}>
       <AppControls />
-      <MapContent locations={locations} />
+      <MapContent
+        locations={locations}
+        lastLocation={locations ? locations[locations.length - 1] : null}
+        geofence={appState?.homeGeobox}
+      />
     </View>
   );
 };

@@ -1,14 +1,14 @@
 import Constants from 'expo-constants';
 import { Asset } from 'expo-asset';
+import { MysteryZone } from './MysteryZone';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, View, Platform, Text, Image } from 'react-native';
+import { Animated, Easing, StyleSheet, View, Platform, Text } from 'react-native';
 import MapView, {
   PROVIDER_GOOGLE,
   MapViewProps,
   Polyline,
   Marker,
-  Polygon,
   Region,
   Callout,
 } from 'react-native-maps';
@@ -24,12 +24,14 @@ import { Location } from '../types';
 // {/* <Image source={Asset.fromModule(require('../assets/logo.png')) */}
 
 const bus = Asset.fromModule(require('../assets/glinda_icon.png'));
-console.log(bus);
+const seaMonster = Asset.fromModule(require('../assets/octopus_icon.png'));
+
 //const bus = Image.resolveAssetSource(glinda_icon_source);
 
 type MapContentProps = {
   locations: Location[];
-  geofence?: [Location, Location, Location, Location]; // Rectangular box
+  lastLocation?: Location | null;
+  geofence?: [Location, Location, Location, Location] | undefined; // Rectangular box
 };
 
 const googleMapsApiKey = Constants?.expoConfig?.extra?.googleMapsApiKey;
@@ -79,18 +81,11 @@ const pirateMapStyle = [
   },
 ];
 
-const seaCreatures = [
-  { id: 'snake1', title: 'Sea Serpent', latitude: 40.67, longitude: -73.95 },
-  { id: 'kraken', title: 'The Kraken', latitude: 40.66, longitude: -73.92 },
-];
-
-const MapContent: React.FC<MapContentProps> = ({ locations, geofence }) => {
+const MapContent: React.FC<MapContentProps> = ({ locations, geofence, lastLocation }) => {
   const mapRef = useRef<MapView>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isUserInteracting, setIsUserInteracting] = useState(false);
   const tiltAnim = useRef(new Animated.Value(0)).current;
-
-  const lastLocation = locations[locations.length - 1];
 
   const centerMap = (location: Location) => {
     const region: Region = {
@@ -221,32 +216,7 @@ const MapContent: React.FC<MapContentProps> = ({ locations, geofence }) => {
         )}
 
         {/* Geofence Polygon */}
-        {geofence && (
-          <Polygon
-            coordinates={geofence}
-            strokeColor="#8B4513"
-            fillColor="rgba(139, 69, 19, 0.1)"
-            strokeWidth={2}
-          />
-        )}
-
-        {/* Sea Creatures */}
-        {seaCreatures.map((creature) => (
-          <Marker
-            key={creature.id}
-            coordinate={{
-              latitude: creature.latitude,
-              longitude: creature.longitude,
-            }}
-            image={require('../assets/octopus_icon.png')} // custom icon
-            title={creature.title}>
-            {/* <Image
-              source={require('../assets/octopus_icon.png')}
-              style={{ width: 40, height: 40 }}
-              resizeMode="contain"
-            /> */}
-          </Marker>
-        ))}
+        {geofence && <MysteryZone bounds={geofence} image={seaMonster} />}
       </MapView>
 
       {/* Fog overlay when inside geofence */}
