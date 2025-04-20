@@ -16,13 +16,13 @@ const cfg: ExpoConfig = {
     tsconfigPaths: true,
   },
   orientation: 'portrait',
-  icon: './assets/icon.png',
+  icon: './assets/glinda_icon.png',
   userInterfaceStyle: 'automatic',
   newArchEnabled: false,
   scheme: 'glindaapp',
 
   splash: {
-    image: './assets/splash.png',
+    image: './assets/where_is_glinda_text.png',
     resizeMode: 'contain',
     backgroundColor: '#ffffff',
   },
@@ -70,13 +70,14 @@ const cfg: ExpoConfig = {
       'expo-splash-screen',
       {
         backgroundColor: '#ffffff',
-        image: './assets/splash.png',
+        image: './assets/where_is_glinda_text.png',
       },
     ],
     'react-native-edge-to-edge',
   ],
 
   ios: {
+    icon: './assets/glinda_wtext_circle.png',
     supportsTablet: true,
     config: {
       googleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY,
@@ -85,7 +86,7 @@ const cfg: ExpoConfig = {
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
+      foregroundImage: './assets/glinda_wtext_circle.png',
       backgroundColor: '#ffffff',
     },
     // production: {
@@ -103,7 +104,7 @@ const cfg: ExpoConfig = {
   web: {
     bundler: 'metro',
     output: 'single',
-    favicon: './assets/favicon.png',
+    favicon: './assets/glinda_icon.png',
   },
 };
 

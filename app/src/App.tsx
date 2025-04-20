@@ -11,6 +11,9 @@ const assetsToLoad = [
   ...NavigationAssets,
   require('./assets/glinda_icon.png'),
   require('./assets/octopus_icon.png'),
+  require('./assets/glinda_wtext_circle.png'),
+  require('./assets/where_is_glinda_plain.png'),
+  require('./assets/where_is_glinda_text.png'),
 ];
 
 SplashScreen.preventAutoHideAsync();
