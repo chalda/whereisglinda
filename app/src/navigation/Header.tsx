@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// small angled buttons under the wheel
 const { width: screenWidth } = Dimensions.get('window');
 const IS_SMALL_SCREEN = screenWidth < 480;
 const TIRE_SIZE = IS_SMALL_SCREEN ? screenWidth * 0.28 : screenWidth * 0.175;
