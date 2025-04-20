@@ -35,7 +35,7 @@ const AppControls = () => {
     try {
       const response = await createNewTrip(apiKey);
       // Update app state with new trip ID
-      setAppState({ ...appState, v: response.tripId });
+      setAppState({ ...appState, activeTripId: response.tripId });
     } catch (err) {
       console.error('Failed to create new trip:', err.message);
     }
@@ -55,7 +55,7 @@ const AppControls = () => {
     // If the user is not authenticated, only show the status as text
     return (
       <View style={styles.container}>
-        <Text style={styles.label}>Ride Status:</Text>
+        <Text style={styles.label}>Bus Status:</Text>
         <Text style={styles.text}>{appState?.rideStatus || 'N/A'}</Text>
       </View>
     );

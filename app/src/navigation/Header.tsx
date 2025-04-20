@@ -1,122 +1,174 @@
-import React from 'react';
-import { Text, View, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+  Image,
+  Dimensions,
+  StyleSheet,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
-// Header Component
-const Header = ({ navigation }: any) => {
+const { width: screenWidth } = Dimensions.get('window');
+const IS_SMALL_SCREEN = screenWidth < 480;
+const TIRE_SIZE = IS_SMALL_SCREEN ? screenWidth * 0.28 : screenWidth * 0.175;
+const CENTER = TIRE_SIZE / 2;
+
+const BUTTONS = [
+  { label: 'Hire', angle: 210, route: 'Hire' },
+  { label: 'Find Glinda', angle: 270, route: 'MapScreen' },
+  { label: 'About', angle: 330, route: 'About' },
+];
+
+const Header = ({ navigation }) => {
+  const [active, setActive] = useState('Find Glinda');
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  const triggerSpin = () => {
+    rotateAnim.setValue(0);
+    Animated.timing(rotateAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const spin = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
-    <View style={styles.headerContainer}>
-      {/* Title and Icon */}
-      <View style={styles.titleContainer}>
-        <Image source={require('../assets/glinda_icon.png')} style={styles.icon} />
-        <Text style={styles.title}>Where in the world is glinda?!</Text>
-      </View>
-
-      {/* Button Row */}
-      <View style={styles.buttonRow}>
-        <TouchableOpacity onPress={() => navigation.navigate('About')} style={styles.button}>
-          <Text style={styles.buttonText}>About</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Map')} style={styles.mainButton}>
-          <Text style={styles.buttonText}>Find Glinda</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('Hire')} style={styles.button}>
-          <Text style={styles.buttonText}>Hire</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Login Button */}
+    <View style={[styles.headerBar, { height: TIRE_SIZE + 90 }]}>
       <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginButton}>
         <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
+
+      <Animated.View
+        style={[
+          styles.tireContainer,
+          {
+            width: TIRE_SIZE,
+            height: TIRE_SIZE,
+            borderRadius: CENTER,
+            transform: [{ rotate: spin }],
+          },
+        ]}>
+        <LinearGradient
+          colors={['#333', '#000']}
+          style={[StyleSheet.absoluteFill, { borderRadius: CENTER }]}
+          start={{ x: 0.3, y: 0.3 }}
+          end={{ x: 0.7, y: 0.7 }}
+        />
+        <Image
+          source={require('../assets/where_is_glinda_text.png')}
+          style={{ width: CENTER, height: CENTER, borderRadius: CENTER / 2 }}
+          resizeMode="cover"
+        />
+      </Animated.View>
+
+      <View style={styles.flatButtonRow}>
+        {BUTTONS.map((btn) => {
+          const isActive = active === btn.label;
+          return (
+            <TouchableOpacity
+              key={btn.label}
+              onPress={() => {
+                setActive(btn.label);
+                navigation.navigate(btn.route);
+                triggerSpin();
+              }}
+              style={[
+                styles.sliceButton,
+                {
+                  transform: [{ skewY: '-15deg' }],
+                  backgroundColor: isActive ? '#f8b878' : '#e0a96d',
+                  borderColor: isActive ? '#fff' : '#444',
+                  shadowColor: isActive ? '#fffacd' : '#000',
+                  shadowOpacity: isActive ? 0.9 : 0.4,
+                  shadowRadius: isActive ? 12 : 5,
+                  marginHorizontal: 6,
+                },
+              ]}>
+              <Text
+                style={[
+                  styles.buttonText,
+                  isActive && {
+                    color: '#fff',
+                    textShadowColor: '#fce38a',
+                    textShadowRadius: 8,
+                  },
+                ]}>
+                {btn.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
     </View>
   );
 };
 
-// Styles for Header
+export default Header;
+
 const styles = StyleSheet.create({
-  headerContainer: {
+  headerBar: {
+    backgroundColor: '#FFD800',
     width: '100%',
-    height: 120,
-    paddingTop: 40,
     alignItems: 'center',
-    backgroundColor: '#4E9F3D',
-    position: 'relative',
-  },
-  titleContainer: {
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  icon: {
-    width: 60,
-    height: 60,
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
-    fontFamily: 'Comic Sans MS',
-    textAlign: 'center',
-    transform: [{ rotate: '5deg' }],
-  },
-  buttonRow: {
-    flexDirection: 'row',
     justifyContent: 'center',
-    position: 'absolute',
-    bottom: -30,
-  },
-  button: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginHorizontal: 8,
-    borderWidth: 1,
-    borderColor: '#4E9F3D',
-  },
-  mainButton: {
-    backgroundColor: '#4E9F3D',
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    marginHorizontal: 8,
-  },
-  buttonText: {
-    color: '#4E9F3D',
-    fontSize: 16,
-    fontWeight: 'bold',
+    position: 'relative',
+    paddingTop: 10,
   },
   loginButton: {
     position: 'absolute',
-    right: 10,
     top: 10,
-    backgroundColor: 'transparent',
-    paddingHorizontal: 12,
+    right: 12,
+    padding: 6,
   },
   loginText: {
-    color: '#fff',
+    color: '#333',
     fontSize: 14,
     opacity: 0.6,
   },
+  tireContainer: {
+    position: 'absolute',
+    top: 30,
+    alignSelf: 'center',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 8,
+    borderColor: '#444',
+    overflow: 'hidden',
+    zIndex: -1,
+  },
+  buttonHolder: {
+    position: 'absolute',
+    top: 30,
+    alignSelf: 'center',
+    zIndex: 1,
+  },
+  sliceButton: {
+    width: 90,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomWidth: 6,
+    borderBottomColor: '#6b4c1e',
+    elevation: 8,
+    borderWidth: 1,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: '#333',
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  flatButtonRow: {
+    flexDirection: 'row',
+    marginTop: TIRE_SIZE + 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
-/**
- * #nav-bar {
-border-radius: 20px !important;
-margin-block: 0 5px !important;
-margin-inline: 10px !important;
---toolbar-start-end-padding: 8px !important;
-}
-
-#nav-bar #back-button image {
-border-top-left-radius: 50% !important;
-border-bottom-left-radius: 50% !important;
-}
-
-#PanelUI-button .toolbarbutton-badge-stack {
-border-top-right-radius: 50% !important;
-border-bottom-right-radius: 50% !important;
-}
-
- */
-
-export default Header;

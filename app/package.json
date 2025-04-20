@@ -25,7 +25,6 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.27.0",
-    "metro-runtime": "^0.81.4",
     "@expo/metro-runtime": "~4.0.1",
     "@expo/vector-icons": "^14.0.4",
     "@react-native-community/geolocation": "^3.4.0",
@@ -43,6 +42,7 @@
     "expo-splash-screen": "~0.29.13",
     "expo-system-ui": "~4.0.4",
     "lodash": "^4.17.21",
+    "metro-runtime": "^0.81.4",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.9",
@@ -54,7 +54,8 @@
     "react-native-screens": "~4.4.0",
     "react-native-sse": "^1.2.1",
     "react-native-web": "0.19.13",
-    "react-native-web-google-api-maps": "github:chalda/react-native-web-google-api-maps"
+    "react-native-web-google-api-maps": "github:chalda/react-native-web-google-api-maps",
+    "expo-linear-gradient": "~14.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",
