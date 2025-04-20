@@ -10,29 +10,39 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-// small angled buttons under the wheel
 const { width: screenWidth } = Dimensions.get('window');
 const IS_SMALL_SCREEN = screenWidth < 480;
-const TIRE_SIZE = IS_SMALL_SCREEN ? screenWidth * 0.28 : screenWidth * 0.175;
+const TIRE_SIZE = IS_SMALL_SCREEN ? screenWidth * 0.3 : screenWidth * 0.19;
 const CENTER = TIRE_SIZE / 2;
 
 const BUTTONS = [
-  { label: 'Hire', angle: 210, route: 'Hire' },
-  { label: 'Find Glinda', angle: 270, route: 'MapScreen' },
-  { label: 'About', angle: 330, route: 'About' },
+  { label: 'Hire', route: 'Hire' },
+  { label: 'Find Glinda', route: 'Map' },
+  { label: 'About', route: 'About' },
 ];
 
+const PARALLAX_CROP_HEIGHT = 260;
+const PARALLAX_TOP_OFFSET = 60;
+
 const Header = ({ navigation }) => {
-  const [active, setActive] = useState('Find Glinda');
+  const [active, setActive] = useState('Map');
   const rotateAnim = useRef(new Animated.Value(0)).current;
+  const parallaxAnim = useRef(new Animated.Value(0)).current;
 
   const triggerSpin = () => {
     rotateAnim.setValue(0);
-    Animated.timing(rotateAnim, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(parallaxAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+    ]).start(() => parallaxAnim.setValue(0));
   };
 
   const spin = rotateAnim.interpolate({
@@ -40,72 +50,105 @@ const Header = ({ navigation }) => {
     outputRange: ['0deg', '360deg'],
   });
 
-  return (
-    <View style={[styles.headerBar, { height: TIRE_SIZE + 90 }]}>
-      <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginButton}>
-        <Text style={styles.loginText}>Login</Text>
-      </TouchableOpacity>
+  const parallaxShift = parallaxAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -30],
+  });
 
+  return (
+    <View style={styles.headerContainer}>
+      {/* Top Yellow Band with Buttons */}
+      <View style={styles.topBar}>
+        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginButton}>
+          <Text style={styles.loginText}>Login</Text>
+        </TouchableOpacity>
+        <View style={styles.topButtonRow}>
+          {BUTTONS.map((btn) => {
+            const isActive = active === btn.label;
+            return (
+              <TouchableOpacity
+                key={btn.label}
+                onPress={() => {
+                  setActive(btn.label);
+                  if (navigation?.navigate && typeof navigation.navigate === 'function') {
+                    navigation.navigate(btn.route);
+                  }
+                  triggerSpin();
+                }}
+                style={[
+                  styles.sliceButton,
+                  {
+                    transform: [{ skewY: '-15deg' }],
+                    backgroundColor: isActive ? '#f8b878' : '#e0a96d',
+                    borderColor: isActive ? '#fff' : '#444',
+                    shadowColor: isActive ? '#fffacd' : '#000',
+                    shadowOpacity: isActive ? 0.9 : 0.4,
+                    shadowRadius: isActive ? 12 : 5,
+                    marginHorizontal: 6,
+                  },
+                ]}>
+                <Text
+                  style={[
+                    styles.buttonText,
+                    isActive && {
+                      color: '#fff',
+                      textShadowColor: '#fce38a',
+                      textShadowRadius: 8,
+                    },
+                  ]}>
+                  {btn.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      {/* Middle Band - City Panorama */}
+      <View style={styles.cityBand}>
+        <Animated.View
+          style={[
+            styles.parallaxBackground,
+            {
+              transform: [{ translateX: parallaxShift }],
+              top: -PARALLAX_TOP_OFFSET,
+            },
+          ]}>
+          <Image
+            source={require('../assets/cartoon_city.png')}
+            style={styles.cityImage}
+            resizeMode="cover"
+          />
+        </Animated.View>
+      </View>
+
+      {/* Tire Overlaid */}
       <Animated.View
         style={[
           styles.tireContainer,
           {
-            width: TIRE_SIZE,
-            height: TIRE_SIZE,
-            borderRadius: CENTER,
+            width: TIRE_SIZE * 1.15,
+            height: TIRE_SIZE * 1.15,
+            borderRadius: (TIRE_SIZE * 1.15) / 2,
             transform: [{ rotate: spin }],
           },
         ]}>
         <LinearGradient
           colors={['#333', '#000']}
-          style={[StyleSheet.absoluteFill, { borderRadius: CENTER }]}
+          style={[StyleSheet.absoluteFill, { borderRadius: (TIRE_SIZE * 1.15) / 2 }]}
           start={{ x: 0.3, y: 0.3 }}
           end={{ x: 0.7, y: 0.7 }}
         />
         <Image
           source={require('../assets/where_is_glinda_text.png')}
-          style={{ width: CENTER, height: CENTER, borderRadius: CENTER / 2 }}
+          style={{ width: CENTER * 1.2, height: CENTER * 1.2, borderRadius: (CENTER * 1.2) / 2 }}
           resizeMode="cover"
         />
       </Animated.View>
 
-      <View style={styles.flatButtonRow}>
-        {BUTTONS.map((btn) => {
-          const isActive = active === btn.label;
-          return (
-            <TouchableOpacity
-              key={btn.label}
-              onPress={() => {
-                setActive(btn.label);
-                navigation.navigate(btn.route);
-                triggerSpin();
-              }}
-              style={[
-                styles.sliceButton,
-                {
-                  transform: [{ skewY: '-15deg' }],
-                  backgroundColor: isActive ? '#f8b878' : '#e0a96d',
-                  borderColor: isActive ? '#fff' : '#444',
-                  shadowColor: isActive ? '#fffacd' : '#000',
-                  shadowOpacity: isActive ? 0.9 : 0.4,
-                  shadowRadius: isActive ? 12 : 5,
-                  marginHorizontal: 6,
-                },
-              ]}>
-              <Text
-                style={[
-                  styles.buttonText,
-                  isActive && {
-                    color: '#fff',
-                    textShadowColor: '#fce38a',
-                    textShadowRadius: 8,
-                  },
-                ]}>
-                {btn.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+      {/* Bottom Pavement Band */}
+      <View style={styles.bottomBand}>
+        <Text style={styles.infoText}>Where will Glinda appear next?</Text>
       </View>
     </View>
   );
@@ -114,17 +157,24 @@ const Header = ({ navigation }) => {
 export default Header;
 
 const styles = StyleSheet.create({
-  headerBar: {
-    backgroundColor: '#FFD800',
+  headerContainer: {
     width: '100%',
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#ccc',
+  },
+  topBar: {
+    backgroundColor: '#FFD800',
+    width: '100%',
+    paddingTop: 6,
+    paddingBottom: 10,
+    paddingHorizontal: 10,
+    alignItems: 'center',
     position: 'relative',
-    paddingTop: 10,
+    zIndex: 3,
   },
   loginButton: {
     position: 'absolute',
-    top: 10,
+    top: 8,
     right: 12,
     padding: 6,
   },
@@ -133,22 +183,50 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.6,
   },
+  topButtonRow: {
+    flexDirection: 'row',
+    marginTop: 6,
+    justifyContent: 'center',
+  },
+  cityBand: {
+    backgroundColor: '#a0c4ff',
+    width: '100%',
+    height: TIRE_SIZE * 0.18,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+    position: 'relative',
+    zIndex: 1,
+  },
+  parallaxBackground: {
+    position: 'absolute',
+    left: 0,
+    height: PARALLAX_CROP_HEIGHT,
+    width: '200%',
+  },
+  cityImage: {
+    height: '100%',
+    width: '100%',
+  },
+  bottomBand: {
+    backgroundColor: '#777',
+    width: '100%',
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2, // <-- above the background
+    marginTop: TIRE_SIZE * 0.25, // show below the tire
+  },
+
   tireContainer: {
     position: 'absolute',
-    top: 30,
-    alignSelf: 'center',
+    top: TIRE_SIZE * 0.15,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 8,
     borderColor: '#444',
     overflow: 'hidden',
-    zIndex: -1,
-  },
-  buttonHolder: {
-    position: 'absolute',
-    top: 30,
-    alignSelf: 'center',
-    zIndex: 1,
+    zIndex: 2,
   },
   sliceButton: {
     width: 90,
@@ -166,10 +244,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 13,
   },
-  flatButtonRow: {
-    flexDirection: 'row',
-    marginTop: TIRE_SIZE + 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+  infoText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
