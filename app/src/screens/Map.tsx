@@ -16,7 +16,6 @@ const Map: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <AppControls />
       <MapContent
         locations={locations}
         lastLocation={locations ? locations[locations.length - 1] : null}
