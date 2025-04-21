@@ -8,6 +8,7 @@ import { createNewTrip, updateTrip, endTrip, fetchActiveTrip } from '../utils/ap
 const AppControls = () => {
   const { apiKey, userRole, activeTrip, activeTripId, setActiveTrip, geobox } = useContext(AppContext);
   const [loading, setLoading] = useState<boolean>(false);
+  const [trackingEnabled, setTrackingEnabled] = useState<boolean>(false);
 
   const canEditAppStatus = userRole === 'admin' || userRole === 'driver';
   const canCreateNewTrip = userRole === 'admin' || userRole === 'driver' || userRole === 'bus';
@@ -16,6 +17,11 @@ const AppControls = () => {
     try {
       const trip = await fetchActiveTrip(apiKey);
       setActiveTrip(trip);
+
+      // Disable tracking if the trip is no longer active
+      if (!trip || trip.rideStatus === 'Not active') {
+        setTrackingEnabled(false);
+      }
     } catch (err) {
       console.error('Failed to refetch active trip:', err.message);
     }
@@ -26,6 +32,7 @@ const AppControls = () => {
       setLoading(true);
       await createNewTrip(apiKey);
       await refetchActiveTrip();
+      setTrackingEnabled(true); // Enable tracking when a new trip is started
     } catch (err) {
       console.error('Failed to create new trip:', err.message);
     } finally {
@@ -38,6 +45,7 @@ const AppControls = () => {
       setLoading(true);
       await endTrip(apiKey);
       await refetchActiveTrip();
+      setTrackingEnabled(false); // Disable tracking when the trip ends
     } catch (err) {
       console.error('Failed to end trip:', err.message);
     } finally {
@@ -89,10 +97,9 @@ const AppControls = () => {
 
       <LocationTracker
         apiKey={apiKey}
-        trackingEnabled={!!activeTrip}
-        rideStatus={activeTrip?.rideStatus || ''}
+        trackingEnabled={trackingEnabled}
         activeTripId={activeTripId}
-        onTrackingDisabled={() => {}}
+        onTrackingDisabled={() => setTrackingEnabled(false)}
       />
     </View>
   );

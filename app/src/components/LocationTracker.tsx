@@ -3,24 +3,22 @@ import React, { useEffect, useRef } from 'react';
 import { Alert, Platform } from 'react-native';
 
 import { sendLocation } from '../utils/api';
+import { TripLocation } from '../types';
 
 type LocationTrackerProps = {
   apiKey: string;
   trackingEnabled: boolean;
-  rideStatus: string;
-  activeTripId: number;
-  onTrackingDisabled: () => void;
+  activeTripId: number | null;
+  onTrackingDisabled?: () => void;
 };
 
 const LocationTracker: React.FC<LocationTrackerProps> = ({
   apiKey,
   trackingEnabled,
-  rideStatus,
   activeTripId,
-  onTrackingDisabled,
+  onTrackingDisabled = () => {}, // Default no-op function
 }) => {
-  // Use 'number' instead of 'NodeJS.Timeout'
-  const trackingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const trackingIntervalRef = useRef<number | null>(null); // Use `number` for React Native
 
   const requestLocationPermission = async (): Promise<boolean> => {
     try {
@@ -31,6 +29,11 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permission Denied', 'Location permission is required to enable tracking.');
+        return false;
+      }
+      const { status: backgroundStatus } = await Location.requestBackgroundPermissionsAsync();
+      if (backgroundStatus !== 'granted') {
+        console.log('Background location permission denied');
         return false;
       }
 
@@ -58,12 +61,12 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
         const location = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = location.coords;
 
-        await sendLocation(apiKey, latitude, longitude, activeTripId);
+        await sendLocation(apiKey, latitude, longitude, activeTripId!);
         console.log('Location sent to backend:', { latitude, longitude, activeTripId });
       } catch (err) {
         console.error('Failed to send location:', err.message);
       }
-    }, 5000);
+    }, 5000) as unknown as number; // Cast to `number` for React Native
   };
 
   const stopLocationTracking = () => {
@@ -75,10 +78,10 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
   };
 
   useEffect(() => {
-    if (rideStatus === 'Home' && trackingEnabled) {
+    if (!activeTripId && trackingEnabled) {
       Alert.alert(
         'Tracking Disabled',
-        'Location tracking has been stopped because the status is "Home".'
+        'Location tracking has been stopped because the trip is no longer active.'
       );
       onTrackingDisabled();
       stopLocationTracking();
@@ -96,7 +99,7 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
       onTrackingDisabled();
       stopLocationTracking();
     };
-  }, [trackingEnabled, rideStatus]);
+  }, [trackingEnabled, activeTripId]);
 
   return null;
 };

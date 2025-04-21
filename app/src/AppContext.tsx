@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import debounce from 'lodash.debounce';
 
-import { Trip, Location, UserRole } from './types';
+import { Trip, Location, UserRole, TripLocation } from './types';
 import { fetchLocations, fetchActiveTrip, fetchGeobox } from './utils/api';
 import useSubscribe from './utils/useSubscribe';
 
@@ -17,6 +17,8 @@ export interface AppContextProps {
   setLocations: (locations: Location[]) => void;
   geobox: Location[] | null;
   setGeobox: (geobox: Location[] | null) => void;
+  latestLocation: TripLocation | null;
+  setLatestLocation: (location: TripLocation | null) => void;
   locationSubscriptionEnabled: boolean;
 }
 
@@ -33,6 +35,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [activeTripId, setActiveTripId] = useState<number | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
   const [geobox, setGeobox] = useState<Location[] | null>(null);
+  const [latestLocation, setLatestLocation] = useState<TripLocation | null>(null);
   const [locationSubscriptionEnabled, setLocationSubscriptionEnabled] = useState(false);
 
   useEffect(() => {
@@ -93,7 +96,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   }, [activeTrip]);
 
   useSubscribe({
-    onLocationUpdate: (location) => {
+    onLocationUpdate: (location: TripLocation) => {
+      setLatestLocation(location); // Save the latest location update
       setLocations((prevLocations) => [...prevLocations, location]);
     },
     enabled: locationSubscriptionEnabled,
@@ -113,6 +117,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         setLocations,
         geobox,
         setGeobox,
+        latestLocation,
+        setLatestLocation,
         locationSubscriptionEnabled,
       }}>
       {children}

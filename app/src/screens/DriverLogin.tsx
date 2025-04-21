@@ -4,10 +4,10 @@ import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import { AppContext } from '../AppContext';
 import { validateApiKey } from '../utils/api';
 import AppControls from '../components/AppControls';
-import LocationTracker from '../components/LocationTracker';
 
 const DriverLogin = () => {
-  const { userRole, setApiKey, setUserRole } = useContext(AppContext);
+  const { activeTripId, activeTrip, apiKey, userRole, setApiKey, setUserRole } =
+    useContext(AppContext);
   const [inputApiKey, setInputApiKey] = useState<string>('');
   const [error, setError] = useState<string>('');
 
@@ -30,7 +30,6 @@ const DriverLogin = () => {
     return (
       <View style={styles.container}>
         <AppControls />
-        <LocationTracker />
         {/* Optionally include the map component here if needed */}
       </View>
     );
