@@ -7,7 +7,10 @@ import (
 
 // SaveTripLocation saves a location to the database with the provided trip ID
 func SaveTripLocation(location models.TripLocation) error {
-	_, err := DB.Exec("INSERT INTO locations (trip_id, latitude, longitude) VALUES (?, ?, ?)", location.TripID, location.Latitude, location.Longitude)
+	_, err := DB.Exec(
+		"INSERT INTO locations (trip_id, latitude, longitude, timestamp) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
+		location.TripID, location.Latitude, location.Longitude,
+	)
 	if err != nil {
 		return fmt.Errorf("failed to save location to database: %w", err)
 	}

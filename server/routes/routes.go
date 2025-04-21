@@ -22,22 +22,23 @@ func SetupRoutes() *mux.Router {
 	router.Use(loggingMiddleware)
 
 	all := []string{"driver", "bus", "admin"}
+
 	// App State Endpoints
-	router.HandleFunc("/state", handlers.GetAppState).Methods("GET")                                        // Fetch app state
-	router.HandleFunc("/state/rideStatus", handlers.Authorize(all, handlers.SetRideStatus)).Methods("POST") // Set ride status
-	router.HandleFunc("/state/homeGeobox", handlers.Authorize(all, handlers.SetHomeGeobox)).Methods("POST") // Set home geobox
+	router.HandleFunc("/state", handlers.GetAppState).Methods("GET") // Fetch app state
+
+	// Geobox Endpoints
+	router.HandleFunc("/geobox", handlers.GetGeoboxHandler).Methods("GET")   // Fetch geobox
+	router.HandleFunc("/geobox", handlers.SaveGeoboxHandler).Methods("POST") // Save geobox
 
 	// Location Endpoints
-	router.HandleFunc("/locations", handlers.Authorize(all, handlers.AddLocation)).Methods("POST") // Add location
-	router.HandleFunc("/locations", handlers.GetLatestTripLocations).Methods("GET")
-	// Subscribe to real-time location updates
-	// Trip Endpoints
-	router.HandleFunc("/locations/subscribe", handlers.SubscribeLocation).Methods("OPTIONS", "GET")
-	tripRouter := router.PathPrefix("/trip").Subrouter()
-	tripRouter.HandleFunc("", handlers.CreateNewTrip).Methods("POST")
-	tripRouter.HandleFunc("/end", handlers.EndTrip).Methods("POST")
+	router.HandleFunc("/locations", handlers.Authorize(all, handlers.AddLocation)).Methods("POST")  // Add location
+	router.HandleFunc("/locations", handlers.GetLatestTripLocations).Methods("GET")                 // Get latest trip locations
+	router.HandleFunc("/locations/subscribe", handlers.SubscribeLocation).Methods("OPTIONS", "GET") // Subscribe to real-time location updates
 
-	//tripRouter.HandleFunc("/{tripID}", handlers.GetTrip).Methods("GET")
+	// Trip Endpoints
+	tripRouter := router.PathPrefix("/trip").Subrouter()
+	tripRouter.HandleFunc("", handlers.CreateNewTrip).Methods("POST") // Create a new trip
+	tripRouter.HandleFunc("/end", handlers.EndTrip).Methods("POST")   // End a trip
 
 	// API Key Validation
 	router.HandleFunc("/validate", handlers.ValidateKey).Methods("POST") // Validate API key
