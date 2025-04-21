@@ -41,12 +41,12 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         const geoboxData = await fetchGeobox();
         setGeobox(geoboxData);
       } catch (err) {
-        console.error('Failed to fetch geobox:', err.message);
+        console.error('Failed to fetch the latest geobox:', err.message);
       }
     };
 
     fetchGeoboxData();
-  }, []);
+  }, []); // Fetch geobox only once when the component mounts
 
   useEffect(() => {
     const fetchActiveTripData = async () => {

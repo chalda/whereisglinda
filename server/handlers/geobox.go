@@ -3,15 +3,46 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"whereisglinda-backend/models"
 	"whereisglinda-backend/storage"
 )
 
-// GetGeoboxHandler retrieves the latest geobox
+// GetGeoboxHandler retrieves a geobox by ID
 func GetGeoboxHandler(w http.ResponseWriter, r *http.Request) {
-	geobox, err := storage.GetGeobox()
+	// Extract geobox_id from query parameters
+	geoboxIDStr := r.URL.Query().Get("id")
+	if geoboxIDStr == "" {
+		http.Error(w, "Missing geobox ID parameter", http.StatusBadRequest)
+		return
+	}
+
+	geoboxID, err := strconv.Atoi(geoboxIDStr)
+	if err != nil {
+		http.Error(w, "Invalid geobox ID parameter", http.StatusBadRequest)
+		return
+	}
+
+	geobox, err := storage.GetGeoboxByID(geoboxID)
 	if err != nil {
 		http.Error(w, "Failed to fetch geobox", http.StatusInternalServerError)
+		return
+	}
+
+	if geobox == nil {
+		http.Error(w, "Geobox not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(geobox)
+}
+
+// GetLatestGeoboxHandler retrieves the latest geobox
+func GetLatestGeoboxHandler(w http.ResponseWriter, r *http.Request) {
+	geobox, err := storage.GetGeobox()
+	if err != nil {
+		http.Error(w, "Failed to fetch latest geobox", http.StatusInternalServerError)
 		return
 	}
 

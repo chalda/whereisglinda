@@ -19,7 +19,6 @@ func PopulateDummyData() {
 		return
 	}
 
-	// Insert dummy geobox with a square mile in Bushwick, Brooklyn, NY
 	dummyGeobox := []models.Location{
 		{Latitude: 40.6896606, Longitude: -73.9338723},
 		{Latitude: 40.690362, Longitude: -73.9428729},
@@ -32,6 +31,17 @@ func PopulateDummyData() {
 		return
 	}
 
+	// Insert another dummy geobox
+	anotherGeobox := []models.Location{
+		{Latitude: 40.7000, Longitude: -73.9300},
+		{Latitude: 40.7020, Longitude: -73.9250},
+		{Latitude: 40.7040, Longitude: -73.9280},
+		{Latitude: 40.7060, Longitude: -73.9320},
+	}
+	err = SaveGeobox(anotherGeobox)
+	if err != nil {
+		log.Printf("Failed to insert another dummy geobox: %v", err)
+	}
 	// Get the active trip ID
 	tripID, err := GetActiveTripID()
 	if err != nil {

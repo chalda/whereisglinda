@@ -65,16 +65,16 @@ func createTables() {
 		log.Fatalf("Failed to create locations table: %v", err)
 	}
 
-	// Create geobox table
-	_, err = DB.Exec(`
-        CREATE TABLE IF NOT EXISTS geobox (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            geobox_id INTEGER NOT NULL,
-            latitude REAL NOT NULL,
-            longitude REAL NOT NULL
-        )
-    `)
-	if err != nil {
-		log.Fatalf("Failed to create geobox table: %v", err)
-	}
+	 // Create geobox table
+	 _, err = DB.Exec(`
+	 CREATE TABLE IF NOT EXISTS geobox (
+		 id INTEGER PRIMARY KEY AUTOINCREMENT,
+		 geobox_id INTEGER NOT NULL,
+		 latitude REAL NOT NULL,
+		 longitude REAL NOT NULL
+	 )
+ `)
+ if err != nil {
+	 log.Fatalf("Failed to create geobox table: %v", err)
+ }
 }
