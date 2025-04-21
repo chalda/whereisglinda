@@ -2,6 +2,8 @@ package storage
 
 import (
 	"log"
+	"math/rand"
+	"time"
 	"whereisglinda-backend/models"
 )
 
@@ -19,6 +21,7 @@ func PopulateDummyData() {
 		return
 	}
 
+	// Insert a dummy geobox
 	dummyGeobox := []models.Location{
 		{Latitude: 40.6896606, Longitude: -73.9338723},
 		{Latitude: 40.690362, Longitude: -73.9428729},
@@ -42,6 +45,7 @@ func PopulateDummyData() {
 	if err != nil {
 		log.Printf("Failed to insert another dummy geobox: %v", err)
 	}
+
 	// Get the active trip ID
 	tripID, err := GetActiveTripID()
 	if err != nil {
@@ -61,4 +65,41 @@ func PopulateDummyData() {
 			log.Printf("Failed to insert dummy location: %v", err)
 		}
 	}
+}
+
+// GenerateDummyLocationUpdates simulates periodic location updates for the active trip
+func GenerateDummyLocationUpdates() {
+	go func() {
+		for {
+			// Get the active trip ID
+			tripID, err := GetActiveTripID()
+			if err != nil || tripID == nil {
+				log.Printf("No active trip found: %v", err)
+				time.Sleep(10 * time.Second)
+				continue
+			}
+
+			// Generate a random location within a small range
+			latitude := 40.7000 + (rand.Float64()-0.5)*0.01
+			longitude := -73.9300 + (rand.Float64()-0.5)*0.01
+
+			// Save the location update
+			location := models.TripLocation{
+				Location: models.Location{
+					Latitude:  latitude,
+					Longitude: longitude,
+				},
+				TripID: *tripID,
+			}
+			err = SaveTripLocation(location)
+			if err != nil {
+				log.Printf("Failed to insert dummy location update: %v", err)
+			} else {
+				log.Printf("Inserted dummy location update: %+v", location)
+			}
+
+			// Wait for a random interval between 5 and 10 seconds
+			time.Sleep(time.Duration(5+rand.Intn(5)) * time.Second)
+		}
+	}()
 }
