@@ -14,28 +14,6 @@ var (
 	locationsMu sync.Mutex
 )
 
-func GetLatestTripLocations(w http.ResponseWriter, r *http.Request) {
-	tripID, err := storage.GetActiveTripID()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if tripID == nil {
-		http.Error(w, "No active trip", http.StatusNotFound)
-		return 
-	}
-
-	locations, err := storage.GetLocationsForTrip(*tripID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(locations)
-}
-
 func AddLocation(w http.ResponseWriter, r *http.Request) {
 	var location models.TripLocation
 	if err := json.NewDecoder(r.Body).Decode(&location); err != nil {

@@ -3,6 +3,7 @@ package storage
 import (
 	"database/sql"
 	"log"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -11,28 +12,40 @@ var DB *sql.DB
 
 // InitDB initializes the SQLite database
 func InitDB() {
+	// Initialize the database connection
 	var err error
-	DB, err = sql.Open("sqlite3", "./app.db")
+	DB, err = sql.Open("sqlite3", "./whereisglinda.db")
 	if err != nil {
-		log.Fatalf("Failed to open database: %v", err)
+		log.Fatalf("Failed to connect to the database: %v", err)
 	}
 
-	// Create tables if they don't exist
+	// Create tables
 	createTables()
+
+	// Start a background routine to end inactive trips
+	go func() {
+		for {
+			err := EndInactiveTrips()
+			if err != nil {
+				log.Printf("Error ending inactive trips: %v", err)
+			}
+			time.Sleep(1 * time.Hour) // Run every hour
+		}
+	}()
 }
 
 func createTables() {
-	// Create trips table to manage the current trip ID
+	// Create trips table
 	_, err := DB.Exec(`
         CREATE TABLE IF NOT EXISTS trips (
             trip_id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
             start_time DATETIME DEFAULT CURRENT_TIMESTAMP,
             end_time DATETIME,
-            status TEXT
+            status TEXT,
+            ride_status TEXT
         )
     `)
-
 	if err != nil {
 		log.Fatalf("Failed to create trips table: %v", err)
 	}
@@ -52,23 +65,16 @@ func createTables() {
 		log.Fatalf("Failed to create locations table: %v", err)
 	}
 
-	_, err = DB.Exec(`
-        CREATE TABLE IF NOT EXISTS app_state (
-            id INTEGER PRIMARY KEY CHECK (id = 1),
-            ride_status TEXT NOT NULL,
-            home_geobox TEXT NOT NULL
-        )
-    `)
-	if err != nil {
-		log.Fatalf("Failed to create app_state table: %v", err)
-	}
-
-	// Insert default app state if not exists
-	_, err = DB.Exec(`
-        INSERT OR IGNORE INTO app_state (id, ride_status, home_geobox)
-        VALUES (1, 'Chilling', '[]')
-    `)
-	if err != nil {
-		log.Fatalf("Failed to insert default app state: %v", err)
-	}
+	 // Create geobox table
+	 _, err = DB.Exec(`
+	 CREATE TABLE IF NOT EXISTS geobox (
+		 id INTEGER PRIMARY KEY AUTOINCREMENT,
+		 geobox_id INTEGER NOT NULL,
+		 latitude REAL NOT NULL,
+		 longitude REAL NOT NULL
+	 )
+ `)
+ if err != nil {
+	 log.Fatalf("Failed to create geobox table: %v", err)
+ }
 }

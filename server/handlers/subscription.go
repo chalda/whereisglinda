@@ -4,44 +4,56 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
+	"sync"
 )
 
-func SubscribeLocation(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-	w.Header().Set("Content-Type", "text/event-stream")
+var (
+	locationUpdates []map[string]interface{}
+	mu              sync.Mutex
+)
 
-	// Handle OPTIONS request
-	if r.Method == http.MethodOptions {
-		w.WriteHeader(http.StatusOK)
+// AddLocationHandler handles incoming location updates
+func AddLocationHandler(w http.ResponseWriter, r *http.Request) {
+	var locationUpdate map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&locationUpdate); err != nil {
+		http.Error(w, "Invalid location update", http.StatusBadRequest)
 		return
 	}
 
+	mu.Lock()
+	locationUpdates = append(locationUpdates, locationUpdate)
+	if len(locationUpdates) > 100 {
+		locationUpdates = locationUpdates[1:] // Keep only the last 100 updates
+	}
+	mu.Unlock()
+
+	w.WriteHeader(http.StatusOK)
+}
+
+// SubscribeLocation streams location updates to clients
+func SubscribeLocation(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
 	for {
-		locationsMu.Lock()
-		if len(locations) == 0 {
-			locationsMu.Unlock()
-			time.Sleep(2 * time.Second)
+		mu.Lock()
+		if len(locationUpdates) == 0 {
+			mu.Unlock()
 			continue
 		}
 
-		latestLocation := locations[len(locations)-1]
-		locationsMu.Unlock()
+		latestUpdate := locationUpdates[len(locationUpdates)-1]
+		mu.Unlock()
 
-		data, err := json.Marshal(latestLocation)
+		data, err := json.Marshal(latestUpdate)
 		if err != nil {
-			http.Error(w, "Failed to encode location", http.StatusInternalServerError)
+			http.Error(w, "Failed to encode location update", http.StatusInternalServerError)
 			return
 		}
 
 		fmt.Fprintf(w, "data: %s\n\n", data)
 		w.(http.Flusher).Flush()
-		time.Sleep(2 * time.Second)
 	}
 }

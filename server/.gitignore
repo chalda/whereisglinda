@@ -12,7 +12,7 @@ web-build/
 
 .env
 scaffold.sh
-*app.db
+*.db
 
 ios
 android

@@ -3,6 +3,7 @@ import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { Asset } from 'expo-asset';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useCallback, useState } from 'react';
+import { SafeAreaView, StyleSheet } from 'react-native';
 
 import { AppProvider } from './AppContext';
 import HeaderNavigator from './navigation';
@@ -38,15 +39,24 @@ export function App() {
   if (!appReady) return null;
 
   return (
-    <AppProvider>
-      <NavigationContainer
-        theme={DefaultTheme}
-        linking={{
-          enabled: 'auto',
-          prefixes: ['glindaapp://'],
-        }}>
-        <HeaderNavigator />
-      </NavigationContainer>
-    </AppProvider>
+    <SafeAreaView style={styles.safeArea}>
+      <AppProvider>
+        <NavigationContainer
+          theme={DefaultTheme}
+          linking={{
+            enabled: 'auto',
+            prefixes: ['glindaapp://'],
+          }}>
+          <HeaderNavigator />
+        </NavigationContainer>
+      </AppProvider>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff', // Optional: Set a default background color
+  },
+});

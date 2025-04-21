@@ -2,12 +2,12 @@ import Constants from 'expo-constants';
 import { useEffect, useRef } from 'react';
 import EventSource from 'react-native-sse';
 
-import { Location } from '../types';
+import { TripLocation } from '../types';
 
 const backendUrl: string = Constants?.expoConfig?.extra?.backendUrl;
 
 type UseSubscribeProps = {
-  onLocationUpdate: (location: Location) => void;
+  onLocationUpdate: (location: TripLocation) => void;
   enabled: boolean;
 };
 
@@ -25,7 +25,7 @@ const useSubscribe = ({ onLocationUpdate, enabled }: UseSubscribeProps) => {
 
       es.addEventListener('message', (event) => {
         try {
-          const location: Location = JSON.parse(event?.data);
+          const location: TripLocation = JSON.parse(event?.data);
           onLocationUpdate(location);
         } catch (err) {
           console.error('Failed to parse location update:', err);

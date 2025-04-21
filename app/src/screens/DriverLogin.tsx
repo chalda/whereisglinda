@@ -1,16 +1,13 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 
-import { AppContext } from '../AppContext'; // Import AppContext for global state
-import { type HeaderNavigatorParamList } from '../navigation';
+import { AppContext } from '../AppContext';
 import { validateApiKey } from '../utils/api';
+import AppControls from '../components/AppControls';
 
-interface DriverLoginProps {
-  navigation: HeaderNavigatorParamList;
-}
-
-const DriverLogin: React.FC<DriverLoginProps> = ({ navigation }) => {
-  const { setApiKey, setUserRole } = useContext(AppContext);
+const DriverLogin = () => {
+  const { activeTripId, activeTrip, apiKey, userRole, setApiKey, setUserRole } =
+    useContext(AppContext);
   const [inputApiKey, setInputApiKey] = useState<string>('');
   const [error, setError] = useState<string>('');
 
@@ -23,12 +20,20 @@ const DriverLogin: React.FC<DriverLoginProps> = ({ navigation }) => {
         //@ts-ignore-next-line
         setUserRole(response.role);
         console.log('Login successful');
-        navigation.navigate('Map'); // Navigate to the Map screen
       }
     } catch (err: any) {
       setError(err.message);
     }
   };
+
+  if (userRole === 'admin') {
+    return (
+      <View style={styles.container}>
+        <AppControls />
+        {/* Optionally include the map component here if needed */}
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

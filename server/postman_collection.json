@@ -40,44 +40,50 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                    "raw": "http://localhost:8080/subscribe",
+                    "raw": "http://localhost:8080/locations/subscribe",
                     "protocol": "http",
                     "host": ["localhost"],
                     "port": "8080",
-                    "path": ["subscribe"]
+                    "path": ["locations", "subscribe"]
                 }
             },
             "response": []
         },
         {
-            "name": "Get App State",
+            "name": "Get Latest Geobox",
             "request": {
                 "method": "GET",
-                "header": [
-                    {
-                        "key": "Authorization",
-                        "value": "driver-key"
-                    }
-                ],
+                "header": [],
                 "url": {
-                    "raw": "http://localhost:8080/state",
+                    "raw": "http://localhost:8080/geobox",
                     "protocol": "http",
                     "host": ["localhost"],
                     "port": "8080",
-                    "path": ["state"]
+                    "path": ["geobox"]
                 }
             },
             "response": []
         },
         {
-            "name": "Set App State",
+            "name": "Get Geobox by ID",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:8080/geobox/1",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["geobox", "1"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Save Geobox",
             "request": {
                 "method": "POST",
                 "header": [
-                    {
-                        "key": "Authorization",
-                        "value": "driver-key"
-                    },
                     {
                         "key": "Content-Type",
                         "value": "application/json"
@@ -85,42 +91,59 @@
                 ],
                 "body": {
                     "mode": "raw",
-                    "raw": "{\n  \"rideStatus\": \"Riding\",\n  \"homeGeobox\": [\n    { \"latitude\": 37.7749, \"longitude\": -122.4194 },\n    { \"latitude\": 34.0522, \"longitude\": -118.2437 },\n    { \"latitude\": 40.7128, \"longitude\": -74.0060 },\n    { \"latitude\": 51.5074, \"longitude\": -0.1278 }\n  ]\n}"
+                    "raw": "[\n  { \"latitude\": 37.7749, \"longitude\": -122.4194 },\n  { \"latitude\": 34.0522, \"longitude\": -118.2437 },\n  { \"latitude\": 40.7128, \"longitude\": -74.0060 },\n  { \"latitude\": 51.5074, \"longitude\": -0.1278 }\n]"
                 },
                 "url": {
-                    "raw": "http://localhost:8080/state",
+                    "raw": "http://localhost:8080/geobox",
                     "protocol": "http",
                     "host": ["localhost"],
                     "port": "8080",
-                    "path": ["state"]
+                    "path": ["geobox"]
                 }
             },
             "response": []
         },
         {
-            "name": "Set Trip ID",
+            "name": "Get Active Trip",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:8080/trip/active",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["trip", "active"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Create New Trip",
             "request": {
                 "method": "POST",
-                "header": [
-                    {
-                        "key": "Authorization",
-                        "value": "driver-key"
-                    },
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                    }
-                ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n  \"tripID\": 42\n}"
-                },
+                "header": [],
                 "url": {
                     "raw": "http://localhost:8080/trip",
                     "protocol": "http",
                     "host": ["localhost"],
                     "port": "8080",
                     "path": ["trip"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "End Trip",
+            "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:8080/trip/end",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["trip", "end"]
                 }
             },
             "response": []
@@ -140,11 +163,11 @@
                     "raw": "{\n  \"apiKey\": \"driver-key\"\n}"
                 },
                 "url": {
-                    "raw": "http://localhost:8080/validate-key",
+                    "raw": "http://localhost:8080/validate",
                     "protocol": "http",
                     "host": ["localhost"],
                     "port": "8080",
-                    "path": ["validate-key"]
+                    "path": ["validate"]
                 }
             },
             "response": []

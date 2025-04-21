@@ -1,8 +1,8 @@
 import React, { createContext, useState, useEffect } from 'react';
 import debounce from 'lodash.debounce';
 
-import { AppState, Location, UserRole } from './types';
-import { fetchLocations, fetchAppState } from './utils/api';
+import { Trip, Location, UserRole, TripLocation } from './types';
+import { fetchLocations, fetchActiveTrip, fetchGeobox } from './utils/api';
 import useSubscribe from './utils/useSubscribe';
 
 export interface AppContextProps {
@@ -10,12 +10,16 @@ export interface AppContextProps {
   setApiKey: (key: string) => void;
   userRole: UserRole;
   setUserRole: (role: UserRole) => void;
-  appState: AppState | null;
-  setAppState: (state: AppState) => void;
+  activeTrip: Trip | null;
+  setActiveTrip: (trip: Trip | null) => void;
+  activeTripId: number | null;
   locations: Location[];
   setLocations: (locations: Location[]) => void;
-  activeTripId: number | null;
-  setActiveTripId: (tripId: number) => void;
+  geobox: Location[] | null;
+  setGeobox: (geobox: Location[] | null) => void;
+  latestLocation: TripLocation | null;
+  setLatestLocation: (location: TripLocation | null) => void;
+  locationSubscriptionEnabled: boolean;
 }
 
 export const AppContext = createContext<AppContextProps>({} as AppContextProps);
@@ -23,37 +27,64 @@ export const AppContext = createContext<AppContextProps>({} as AppContextProps);
 export type AppProviderProps = {
   children: React.ReactNode;
 };
+
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [apiKey, setApiKey] = useState<string>('');
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [appState, setAppState] = useState<AppState | null>(null);
-  const [locations, setLocations] = useState<Location[]>([]);
+  const [activeTrip, setActiveTrip] = useState<Trip | null>(null);
   const [activeTripId, setActiveTripId] = useState<number | null>(null);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [geobox, setGeobox] = useState<Location[] | null>(null);
+  const [latestLocation, setLatestLocation] = useState<TripLocation | null>(null);
   const [locationSubscriptionEnabled, setLocationSubscriptionEnabled] = useState(false);
 
   useEffect(() => {
-    const fetchState = async () => {
+    const fetchGeoboxData = async () => {
       try {
-        const data = await fetchAppState();
-        setAppState(data);
+        const geoboxData = await fetchGeobox();
+        setGeobox(geoboxData);
       } catch (err) {
-        console.error('Failed to fetch app state:', err.message);
+        console.error('Failed to fetch the latest geobox:', err.message);
       }
     };
 
-    const intervalId = setInterval(fetchState, 30 * 1000); // 30 seconds
+    fetchGeoboxData();
+  }, []); // Fetch geobox only once when the component mounts
+
+  useEffect(() => {
+    const fetchActiveTripData = async () => {
+      try {
+        const trip = await fetchActiveTrip(apiKey);
+        setActiveTrip(trip);
+
+        // Update activeTripId whenever activeTrip changes
+        setActiveTripId(trip?.tripId || null);
+
+        // Fetch locations if there is an active trip
+        if (trip) {
+          const tripLocations = await fetchLocations();
+          setLocations(tripLocations);
+        } else {
+          setLocations([]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch active trip or locations:', err.message);
+      }
+    };
+
+    const intervalId = setInterval(fetchActiveTripData, 30 * 1000); // 30 seconds
 
     return () => {
       clearInterval(intervalId);
     };
-  }, []);
+  }, [apiKey]);
 
   useEffect(() => {
     const debounceSetSubscription = debounce((enabled: boolean) => {
       setLocationSubscriptionEnabled(enabled);
     }, 1000); // Debounce to 1 second
 
-    if (appState && appState.rideStatus !== 'Home') {
+    if (activeTrip && activeTrip.rideStatus !== 'Not active') {
       debounceSetSubscription(true);
     } else {
       debounceSetSubscription(false);
@@ -62,39 +93,12 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     return () => {
       debounceSetSubscription.cancel(); // Cancel debounce on cleanup
     };
-  }, [appState]);
+  }, [activeTrip]);
 
-  const loadAppState = async () => {
-    try {
-      const data = await fetchAppState(); // Fetch app state without an API key
-      setAppState(data);
-    } catch (err) {
-      console.error('Failed to fetch app state:', err.message);
-    }
-  };
-
-  const loadLocations = async () => {
-    try {
-      const data = await fetchLocations(); // Fetch locations without an API key
-      setLocations(data);
-    } catch (err) {
-      console.error('Failed to fetch locations:', err.message);
-    }
-  };
-
-  const handleRefresh = async () => {
-    await loadAppState();
-    await loadLocations();
-  };
-
-  useEffect(() => {
-    handleRefresh();
-  }, []);
-
-  // Subscribe to the latest location updates
   useSubscribe({
-    onLocationUpdate: (location) => {
-      setLocations((prevLocations) => [...prevLocations, location]); // Append the new location to the array
+    onLocationUpdate: (location: TripLocation) => {
+      setLatestLocation(location); // Save the latest location update
+      setLocations((prevLocations) => [...prevLocations, location]);
     },
     enabled: locationSubscriptionEnabled,
   });
@@ -106,12 +110,16 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         setApiKey,
         userRole,
         setUserRole,
-        appState,
-        setAppState,
+        activeTrip,
+        setActiveTrip,
+        activeTripId,
         locations,
         setLocations,
-        activeTripId,
-        setActiveTripId,
+        geobox,
+        setGeobox,
+        latestLocation,
+        setLatestLocation,
+        locationSubscriptionEnabled,
       }}>
       {children}
     </AppContext.Provider>
