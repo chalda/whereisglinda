@@ -31,7 +31,7 @@ const seaMonster = Asset.fromModule(require('../assets/octopus_icon.png'));
 type MapContentProps = {
   locations: Location[];
   lastLocation?: Location | null;
-  geofence?: [Location, Location, Location, Location] | undefined; // Rectangular box
+  geofence?: Location[]; // Ensure geofence is typed as an array of Location
 };
 
 const googleMapsApiKey = Constants?.expoConfig?.extra?.googleMapsApiKey;

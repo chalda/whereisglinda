@@ -86,3 +86,21 @@ func EndTrip(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+// GetActiveTrip retrieves the active trip
+func GetActiveTrip(w http.ResponseWriter, r *http.Request) {
+	activeTrip, err := storage.GetActiveTrip()
+	if err != nil {
+		http.Error(w, "Failed to fetch active trip", http.StatusInternalServerError)
+		return
+	}
+
+	if activeTrip == nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(map[string]string{"message": "No active trip found"})
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(activeTrip)
+}

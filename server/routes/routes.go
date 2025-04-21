@@ -23,9 +23,6 @@ func SetupRoutes() *mux.Router {
 
 	all := []string{"driver", "bus", "admin"}
 
-	// App State Endpoints
-	router.HandleFunc("/state", handlers.GetAppState).Methods("GET") // Fetch app state
-
 	// Geobox Endpoints
 	router.HandleFunc("/geobox", handlers.GetGeoboxHandler).Methods("GET")   // Fetch geobox
 	router.HandleFunc("/geobox", handlers.SaveGeoboxHandler).Methods("POST") // Save geobox
@@ -37,8 +34,9 @@ func SetupRoutes() *mux.Router {
 
 	// Trip Endpoints
 	tripRouter := router.PathPrefix("/trip").Subrouter()
-	tripRouter.HandleFunc("", handlers.CreateNewTrip).Methods("POST") // Create a new trip
-	tripRouter.HandleFunc("/end", handlers.EndTrip).Methods("POST")   // End a trip
+	tripRouter.HandleFunc("", handlers.CreateNewTrip).Methods("POST")       // Create a new trip
+	tripRouter.HandleFunc("/end", handlers.EndTrip).Methods("POST")         // End a trip
+	tripRouter.HandleFunc("/active", handlers.GetActiveTrip).Methods("GET") // Fetch active trip
 
 	// API Key Validation
 	router.HandleFunc("/validate", handlers.ValidateKey).Methods("POST") // Validate API key

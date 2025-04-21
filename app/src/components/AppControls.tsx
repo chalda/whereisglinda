@@ -1,27 +1,31 @@
-import React, { useContext, useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Switch } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { View, Text, Button, StyleSheet } from 'react-native';
 
-import LocationTracker from './LocationTracker'; // Import LocationTracker for location tracking
-import { AppContext } from '../AppContext'; // Import AppContext for global state
-import { createNewTrip, updateTrip, fetchAppState, endTrip } from '../utils/api'; // Import updateAppState for API calls
+import LocationTracker from './LocationTracker';
+import { AppContext } from '../AppContext';
+import { createNewTrip, updateTrip, endTrip, fetchActiveTrip } from '../utils/api';
 
 const AppControls = () => {
-  const { apiKey, userRole, appState, setAppState } = useContext(AppContext);
-  const [geobox, setGeobox] = useState<string>(JSON.stringify(appState?.homeGeobox || []));
-  const [trackingEnabled, setTrackingEnabled] = useState<boolean>(false);
+  const { apiKey, userRole, activeTrip, activeTripId, setActiveTrip, geobox } = useContext(AppContext);
   const [loading, setLoading] = useState<boolean>(false);
-  const [rideStatus, setRideStatus] = useState<string>(appState?.rideStatus || '');
 
   const canEditAppStatus = userRole === 'admin' || userRole === 'driver';
-  const canEditGeobox = userRole === 'admin';
-  const canEditTracking = userRole === 'admin' || userRole === 'bus';
   const canCreateNewTrip = userRole === 'admin' || userRole === 'driver' || userRole === 'bus';
+
+  const refetchActiveTrip = async () => {
+    try {
+      const trip = await fetchActiveTrip(apiKey);
+      setActiveTrip(trip);
+    } catch (err) {
+      console.error('Failed to refetch active trip:', err.message);
+    }
+  };
 
   const handleCreateNewTrip = async () => {
     try {
       setLoading(true);
-      const response = await createNewTrip(apiKey);
-      setAppState({ ...appState, activeTripId: response.tripId });
+      await createNewTrip(apiKey);
+      await refetchActiveTrip();
     } catch (err) {
       console.error('Failed to create new trip:', err.message);
     } finally {
@@ -33,9 +37,7 @@ const AppControls = () => {
     try {
       setLoading(true);
       await endTrip(apiKey);
-      // Refetch app state after ending the trip
-      const updatedAppState = await fetchAppState(apiKey);
-      setAppState(updatedAppState);
+      await refetchActiveTrip();
     } catch (err) {
       console.error('Failed to end trip:', err.message);
     } finally {
@@ -43,16 +45,16 @@ const AppControls = () => {
     }
   };
 
-  const handleUpdateAppStatus = async () => {
-    if (!appState?.activeTripId) {
+  const handleUpdateRideStatus = async (newRideStatus: string) => {
+    if (!activeTrip) {
       console.error('No active trip to update ride status.');
       return;
     }
 
     try {
       setLoading(true);
-      await updateTrip(apiKey, appState.activeTripId, { rideStatus });
-      setAppState({ ...appState, rideStatus });
+      await updateTrip(apiKey, activeTripId!, { rideStatus: newRideStatus });
+      setActiveTrip({ ...activeTrip, rideStatus: newRideStatus });
     } catch (err) {
       console.error('Failed to update ride status:', err.message);
     } finally {
@@ -60,23 +62,11 @@ const AppControls = () => {
     }
   };
 
-  if (!userRole) {
-    // If the user is not authenticated, only show the status as text
-    return (
-      <View style={styles.container}>
-        <Text style={styles.label}>Bus Status:</Text>
-        <Text style={styles.text}>{appState?.rideStatus || 'N/A'}</Text>
-      </View>
-    );
-  }
-
-  const isDisabled = appState?.activeTripId === null;
-
   return (
     <View style={styles.container}>
-      {appState?.activeTripId ? (
+      {activeTrip ? (
         <View style={styles.row}>
-          <Text style={styles.label}>Trip Number: {appState.activeTripId}</Text>
+          <Text style={styles.label}>Trip Number: {activeTripId}</Text>
           <Button title="End Trip" onPress={handleEndTrip} disabled={loading} />
         </View>
       ) : (
@@ -88,44 +78,21 @@ const AppControls = () => {
       )}
 
       <Text style={styles.label}>Ride Status:</Text>
-      <TextInput
-        style={styles.input}
-        value={rideStatus}
-        onChangeText={setRideStatus}
-        onBlur={handleUpdateAppStatus}
-        placeholder="Ride Status"
-        editable={!isDisabled && canEditAppStatus}
-      />
+      <Text style={styles.text}>{activeTrip?.rideStatus || 'N/A'}</Text>
 
       <Text style={styles.label}>Geobox:</Text>
-      {canEditGeobox ? (
-        <TextInput
-          style={styles.input}
-          value={geobox}
-          onChangeText={setGeobox}
-          placeholder="Geobox JSON"
-          editable={!isDisabled}
-        />
+      {geobox ? (
+        <Text style={styles.text}>{JSON.stringify(geobox, null, 2)}</Text> // Prettified JSON
       ) : (
-        <Text style={styles.text}>{JSON.stringify(appState?.homeGeobox || [])}</Text>
+        <Text style={styles.text}>Loading geobox...</Text>
       )}
-
-      <Text style={styles.label}>Turn on bus tracking:</Text>
-      <Switch
-        value={trackingEnabled}
-        onValueChange={setTrackingEnabled}
-        disabled={!canEditTracking || isDisabled || appState?.rideStatus === 'Not active'}
-      />
-      {appState?.rideStatus === 'Not active' ? (
-        <Text style={styles.text}>Tracking is turned off while inside the home geobox</Text>
-      ) : null}
 
       <LocationTracker
         apiKey={apiKey}
-        trackingEnabled={trackingEnabled}
-        rideStatus={appState?.rideStatus || ''}
-        activeTripId={appState?.activeTripId}
-        onTrackingDisabled={() => setTrackingEnabled(false)}
+        trackingEnabled={!!activeTrip}
+        rideStatus={activeTrip?.rideStatus || ''}
+        activeTripId={activeTripId}
+        onTrackingDisabled={() => {}}
       />
     </View>
   );
@@ -143,16 +110,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginTop: 8,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 8,
-    borderRadius: 4,
-    marginTop: 4,
-  },
   text: {
     fontSize: 16,
     marginTop: 4,
+    fontFamily: 'monospace', // Optional: Use monospace font for JSON
   },
   row: {
     flexDirection: 'row',

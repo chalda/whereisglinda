@@ -46,18 +46,18 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
     if (trackingIntervalRef.current) {
       return; // Prevent multiple intervals
     }
-  
+
     const hasPermission = await requestLocationPermission();
     if (!hasPermission) {
       onTrackingDisabled();
       return;
     }
-  
+
     trackingIntervalRef.current = setInterval(async () => {
       try {
         const location = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = location.coords;
-  
+
         await sendLocation(apiKey, latitude, longitude, activeTripId);
         console.log('Location sent to backend:', { latitude, longitude, activeTripId });
       } catch (err) {
@@ -88,10 +88,12 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
     if (trackingEnabled) {
       startLocationTracking();
     } else {
+      onTrackingDisabled();
       stopLocationTracking();
     }
 
     return () => {
+      onTrackingDisabled();
       stopLocationTracking();
     };
   }, [trackingEnabled, rideStatus]);

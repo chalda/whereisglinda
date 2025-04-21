@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 
-import { Location, AppState } from '../types'; // Import the Location and AppState types
+import { Location, Trip } from '../types'; // Import the Location and AppState types
 
 const backendUrl: string = Constants?.expoConfig?.extra?.backendUrl;
 
@@ -27,66 +27,6 @@ export const apiFetch = async <T>(endpoint: string, apiKey?: string, options?: a
   }
 
   return response.json();
-};
-
-/**
- * Fetch the app state
- * @param apiKey - Optional API key for authentication
- * @returns The app state
- */
-export const fetchAppState = async (apiKey?: string): Promise<AppState> => {
-  return apiFetch<AppState>('/state', apiKey);
-};
-
-/**
- * Fetch the latest geobox
- * @returns The latest geobox
- */
-export const fetchGeobox = async () => {
-  return apiFetch<Location[]>('/geobox');
-};
-
-/**
- * Save a new geobox
- * @param apiKey - The API key for authentication
- * @param geobox - The geobox to save (array of 4 coordinates)
- * @returns The result of the save operation
- */
-export const saveGeobox = async (apiKey: string, geobox: Location[]) => {
-  return apiFetch('/geobox', apiKey, {
-    method: 'POST',
-    body: JSON.stringify(geobox),
-  });
-};
-
-/**
- * Update the app state
- * @param apiKey - The API key for authentication
- * @param updatedState - The updated app state
- * @returns The updated app state
- */
-export const updateAppState = async (apiKey: string, updatedState: AppState) => {
-  return apiFetch<AppState>('/state', apiKey, {
-    method: 'PUT',
-    body: JSON.stringify(updatedState),
-  });
-};
-
-export const setRideStatus = async (apiKey: string, rideStatus: string) => {
-  return apiFetch<AppState>('/state/rideStatus', apiKey, {
-    method: 'POST',
-    body: JSON.stringify({ rideStatus }),
-  });
-};
-
-export const setHomeGeobox = async (
-  apiKey: string,
-  homeGeobox: [number, number, number, number]
-) => {
-  return apiFetch<AppState>('/state/homeGeobox', apiKey, {
-    method: 'POST',
-    body: JSON.stringify({ homeGeobox }),
-  });
 };
 
 /**
@@ -175,4 +115,28 @@ export const updateTrip = async (
     method: 'PATCH',
     body: JSON.stringify(updates),
   });
+};
+
+/**
+ * Fetch the active trip
+ * @param apiKey - Optional API key for authentication
+ * @returns The active trip
+ */
+export const fetchActiveTrip = async (apiKey?: string): Promise<Trip | null> => {
+  try {
+    return await apiFetch<Trip>('/trips/active', apiKey);
+  } catch (err) {
+    if (err.message.includes('404')) {
+      return null; // No active trip
+    }
+    throw err;
+  }
+};
+
+/**
+ * Fetch the latest geobox
+ * @returns The latest geobox
+ */
+export const fetchGeobox = async (): Promise<Location[]> => {
+  return apiFetch<Location[]>('/geobox');
 };

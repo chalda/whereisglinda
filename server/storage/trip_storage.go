@@ -8,6 +8,27 @@ import (
 	"whereisglinda-backend/models"
 )
 
+func GetActiveTrip() (*models.Trip, error) {
+	var trip models.Trip
+	err := DB.QueryRow(`
+        SELECT trip_id, name, start_time, end_time, status, ride_status
+        FROM trips
+        WHERE end_time IS NULL
+        ORDER BY trip_id DESC
+        LIMIT 1
+    `).Scan(&trip.TripID, &trip.Name, &trip.StartTime, &trip.EndTime, &trip.Status, &trip.RideStatus)
+
+	if err == sql.ErrNoRows {
+		return nil, nil // No active trip
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &trip, nil
+}
+
 func GetActiveTripID() (*int, error) {
 	query := "SELECT MAX(trip_id) FROM trips WHERE end_time IS NULL"
 	row := DB.QueryRow(query)

@@ -29,7 +29,7 @@ const PARALLAX_CROP_HEIGHT = 260;
 const PARALLAX_TOP_OFFSET = 60;
 
 const Header = ({ navigation }) => {
-  const { appState } = useContext(AppContext);
+  const { activeTrip } = useContext(AppContext);
   const [active, setActive] = useState('Find Glinda');
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const parallaxAnim = useRef(new Animated.Value(0)).current;
@@ -145,7 +145,7 @@ const Header = ({ navigation }) => {
       <View style={styles.bottomBand}>
         <View style={{ position: 'absolute', left: 20 }}>
           <Text style={[styles.infoText, { fontSize: 14 }]}>Bus Status:</Text>
-          <Text style={[styles.infoText, { fontSize: 14 }]}>{appState?.rideStatus || 'N/A'}</Text>
+          <Text style={[styles.infoText, { fontSize: 14 }]}>{activeTrip?.rideStatus || 'N/A'}</Text>
         </View>
         <Text style={styles.infoText}>Where will Glinda appear next?</Text>
       </View>

@@ -1,13 +1,22 @@
-export type Location = {
+export interface Location {
   latitude: number;
   longitude: number;
-  tripId: number;
-};
+}
+export interface TripLocation {
+    latitude: number;
+    longitude: number;
+    tripId: number;
+    timestamp: any;
+  }
 
-export type AppState = {
+export interface Trip {
+  tripId: number;
+  name: string;
+  startTime: string | null;
+  endTime: string | null;
+  status: string;
   rideStatus: string;
-  homeGeobox: Location[];
-  activeTripId: number | null;
-};
+  locations?: Location[]; // Include locations as part of the trip
+}
 
 export type UserRole = 'admin' | 'driver' | 'bus' | null;
