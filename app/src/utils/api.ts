@@ -34,8 +34,29 @@ export const apiFetch = async <T>(endpoint: string, apiKey?: string, options?: a
  * @param apiKey - Optional API key for authentication
  * @returns The app state
  */
-export const fetchAppState = async (apiKey?: string) => {
+export const fetchAppState = async (apiKey?: string): Promise<AppState> => {
   return apiFetch<AppState>('/state', apiKey);
+};
+
+/**
+ * Fetch the latest geobox
+ * @returns The latest geobox
+ */
+export const fetchGeobox = async () => {
+  return apiFetch<Location[]>('/geobox');
+};
+
+/**
+ * Save a new geobox
+ * @param apiKey - The API key for authentication
+ * @param geobox - The geobox to save (array of 4 coordinates)
+ * @returns The result of the save operation
+ */
+export const saveGeobox = async (apiKey: string, geobox: Location[]) => {
+  return apiFetch('/geobox', apiKey, {
+    method: 'POST',
+    body: JSON.stringify(geobox),
+  });
 };
 
 /**
@@ -72,7 +93,7 @@ export const setHomeGeobox = async (
  * Fetch locations
  * @returns The list of locations
  */
-export const fetchLocations = async () => {
+export const fetchLocations = async (): Promise<Location[]> => {
   return apiFetch<Location[]>('/locations'); // No API key required
 };
 
@@ -81,7 +102,9 @@ export const fetchLocations = async () => {
  * @param apiKey - The API key to validate
  * @returns The validation result
  */
-export const validateApiKey = async (apiKey: string) => {
+export const validateApiKey = async (
+  apiKey: string
+): Promise<{ success: boolean; role: string }> => {
   return apiFetch<{ success: boolean; role: string }>('/validate', apiKey, {
     method: 'POST',
     body: JSON.stringify({ apiKey }),
@@ -93,7 +116,7 @@ export const validateApiKey = async (apiKey: string) => {
  * @param apiKey - The API key for authentication
  * @param latitude - The latitude of the location
  * @param longitude - The longitude of the location
- * @param tripID - The ID of the trip
+ * @param tripId - The ID of the trip
  * @returns The result of the location update
  */
 export const sendLocation = async (
@@ -101,11 +124,11 @@ export const sendLocation = async (
   latitude: number,
   longitude: number,
   tripId: number
-) => {
+): Promise<Location> => {
   const locationData = {
-    latitude: latitude,
-    longitude: longitude,
-    tripId: tripId,
+    latitude,
+    longitude,
+    tripId,
   };
 
   return apiFetch<Location>('/locations', apiKey, {
@@ -119,8 +142,37 @@ export const sendLocation = async (
  * @param apiKey - The API key for authentication
  * @returns The new trip ID
  */
-export const createNewTrip = async (apiKey: string) => {
+export const createNewTrip = async (apiKey: string): Promise<{ tripId: number }> => {
   return apiFetch<{ tripId: number }>('/trip', apiKey, {
     method: 'POST',
+  });
+};
+
+/**
+ * End the current trip
+ * @param apiKey - The API key for authentication
+ * @returns A success message
+ */
+export const endTrip = async (apiKey: string): Promise<void> => {
+  return apiFetch<void>('/trip/end', apiKey, {
+    method: 'POST',
+  });
+};
+
+/**
+ * Update the trip with the given trip ID
+ * @param apiKey - The API key for authentication
+ * @param tripId - The ID of the trip to update
+ * @param updates - The updates to apply (e.g., rideStatus)
+ * @returns A success message
+ */
+export const updateTrip = async (
+  apiKey: string,
+  tripId: number,
+  updates: { rideStatus?: string }
+): Promise<void> => {
+  return apiFetch<void>(`/trip/${tripId}`, apiKey, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
   });
 };

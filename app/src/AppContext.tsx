@@ -36,6 +36,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       try {
         const data = await fetchAppState();
         setAppState(data);
+        setActiveTripId(data.activeTripId || null);
       } catch (err) {
         console.error('Failed to fetch app state:', err.message);
       }
@@ -53,7 +54,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       setLocationSubscriptionEnabled(enabled);
     }, 1000); // Debounce to 1 second
 
-    if (appState && appState.rideStatus !== 'Home') {
+    if (appState && appState.rideStatus !== 'Not active') {
       debounceSetSubscription(true);
     } else {
       debounceSetSubscription(false);
@@ -66,8 +67,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const loadAppState = async () => {
     try {
-      const data = await fetchAppState(); // Fetch app state without an API key
+      const data = await fetchAppState();
       setAppState(data);
+      setActiveTripId(data.activeTripId || null);
     } catch (err) {
       console.error('Failed to fetch app state:', err.message);
     }
@@ -75,7 +77,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const loadLocations = async () => {
     try {
-      const data = await fetchLocations(); // Fetch locations without an API key
+      const data = await fetchLocations();
       setLocations(data);
     } catch (err) {
       console.error('Failed to fetch locations:', err.message);
@@ -91,10 +93,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     handleRefresh();
   }, []);
 
-  // Subscribe to the latest location updates
   useSubscribe({
     onLocationUpdate: (location) => {
-      setLocations((prevLocations) => [...prevLocations, location]); // Append the new location to the array
+      setLocations((prevLocations) => [...prevLocations, location]);
     },
     enabled: locationSubscriptionEnabled,
   });

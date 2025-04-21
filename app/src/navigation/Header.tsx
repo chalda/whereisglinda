@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,10 @@ import {
   StyleSheet,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+// import { Asset } from 'expo-asset';
+import { AppContext } from '../AppContext';
+
+// const city_parallax = Asset.fromModule(require('../assets/cartoon_city.png'));
 
 const { width: screenWidth } = Dimensions.get('window');
 const IS_SMALL_SCREEN = screenWidth < 480;
@@ -17,7 +21,7 @@ const CENTER = TIRE_SIZE / 2;
 
 const BUTTONS = [
   { label: 'Hire', route: 'Hire' },
-  { label: 'Find Glinda', route: 'MapScreen' },
+  { label: 'Find Glinda', route: 'Map' },
   { label: 'About', route: 'About' },
 ];
 
@@ -25,6 +29,7 @@ const PARALLAX_CROP_HEIGHT = 260;
 const PARALLAX_TOP_OFFSET = 60;
 
 const Header = ({ navigation }) => {
+  const { appState } = useContext(AppContext);
   const [active, setActive] = useState('Find Glinda');
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const parallaxAnim = useRef(new Animated.Value(0)).current;
@@ -75,15 +80,7 @@ const Header = ({ navigation }) => {
                 }}
                 style={[
                   styles.sliceButton,
-                  {
-                    transform: [{ skewY: '-15deg' }],
-                    backgroundColor: isActive ? '#f8b878' : '#e0a96d',
-                    borderColor: isActive ? '#fff' : '#444',
-                    shadowColor: isActive ? '#fffacd' : '#000',
-                    shadowOpacity: isActive ? 0.9 : 0.4,
-                    shadowRadius: isActive ? 12 : 5,
-                    marginHorizontal: 6,
-                  },
+                  isActive ? styles.sliceButtonActive : styles.sliceButtonNotActive,
                 ]}>
                 <Text
                   style={[
@@ -109,7 +106,7 @@ const Header = ({ navigation }) => {
             styles.parallaxBackground,
             {
               transform: [{ translateX: parallaxShift }],
-              top: -PARALLAX_TOP_OFFSET,
+              // top: -PARALLAX_TOP_OFFSET,
             },
           ]}>
           <Image
@@ -146,6 +143,10 @@ const Header = ({ navigation }) => {
 
       {/* Bottom Pavement Band */}
       <View style={styles.bottomBand}>
+        <View style={{ position: 'absolute', left: 20 }}>
+          <Text style={[styles.infoText, { fontSize: 14 }]}>Bus Status:</Text>
+          <Text style={[styles.infoText, { fontSize: 14 }]}>{appState?.rideStatus || 'N/A'}</Text>
+        </View>
         <Text style={styles.infoText}>Where will Glinda appear next?</Text>
       </View>
     </View>
@@ -235,6 +236,24 @@ const styles = StyleSheet.create({
     elevation: 8,
     borderWidth: 1,
     borderRadius: 8,
+  },
+  sliceButtonActive: {
+    transform: [{ skewY: '-15deg' }],
+    backgroundColor: '#f8b878',
+    borderColor: '#fff',
+    shadowColor: '#fffacd',
+    shadowOpacity: 0.9,
+    shadowRadius: 12,
+    marginHorizontal: 6,
+  },
+  sliceButtonNotActive: {
+    transform: [{ skewY: '-15deg' }],
+    backgroundColor: '#e0a96d',
+    borderColor: '#444',
+    shadowColor: '#000',
+    shadowOpacity: 0.4,
+    shadowRadius: 5,
+    marginHorizontal: 6,
   },
   buttonText: {
     color: '#333',

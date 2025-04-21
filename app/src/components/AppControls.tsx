@@ -3,51 +3,60 @@ import { View, Text, TextInput, Button, StyleSheet, Switch } from 'react-native'
 
 import LocationTracker from './LocationTracker'; // Import LocationTracker for location tracking
 import { AppContext } from '../AppContext'; // Import AppContext for global state
-import { createNewTrip, setRideStatus } from '../utils/api'; // Import updateAppState for API calls
-
-//type AppControlsProps
+import { createNewTrip, updateTrip, fetchAppState, endTrip } from '../utils/api'; // Import updateAppState for API calls
 
 const AppControls = () => {
   const { apiKey, userRole, appState, setAppState } = useContext(AppContext);
   const [geobox, setGeobox] = useState<string>(JSON.stringify(appState?.homeGeobox || []));
   const [trackingEnabled, setTrackingEnabled] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [rideStatus, setRideStatus] = useState<string>(appState?.rideStatus || '');
 
   const canEditAppStatus = userRole === 'admin' || userRole === 'driver';
   const canEditGeobox = userRole === 'admin';
   const canEditTracking = userRole === 'admin' || userRole === 'bus';
   const canCreateNewTrip = userRole === 'admin' || userRole === 'driver' || userRole === 'bus';
 
-  // const handleUpdateHomeGeobox = async () => {
-  //   try {
-  //     const updatedAppState = {
-  //       tripId: appState.i
-  //       homeGeobox: JSON.parse(geobox),
-  //     };
-
-  //     const response = await setHomeGeobox(apiKey!, homeGeobox);
-  //     setAppState(response);
-  //     console.log('App state updated successfully');
-  //   } catch (err) {
-  //     console.error('Failed to update app state:', err.message);
-  //   }
-  // };
   const handleCreateNewTrip = async () => {
     try {
+      setLoading(true);
       const response = await createNewTrip(apiKey);
-      // Update app state with new trip ID
       setAppState({ ...appState, activeTripId: response.tripId });
     } catch (err) {
       console.error('Failed to create new trip:', err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleUpdateAppStatus = async (newStatus: string) => {
+  const handleEndTrip = async () => {
     try {
-      const response = await setRideStatus(apiKey, newStatus);
-      // Update app state with new trip ID
-      setAppState({ ...appState, rideStatus: newStatus });
+      setLoading(true);
+      await endTrip(apiKey);
+      // Refetch app state after ending the trip
+      const updatedAppState = await fetchAppState(apiKey);
+      setAppState(updatedAppState);
     } catch (err) {
-      console.error('Failed to create new trip:', err.message);
+      console.error('Failed to end trip:', err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateAppStatus = async () => {
+    if (!appState?.activeTripId) {
+      console.error('No active trip to update ride status.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await updateTrip(apiKey, appState.activeTripId, { rideStatus });
+      setAppState({ ...appState, rideStatus });
+    } catch (err) {
+      console.error('Failed to update ride status:', err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -61,18 +70,32 @@ const AppControls = () => {
     );
   }
 
+  const isDisabled = appState?.activeTripId === null;
+
   return (
     <View style={styles.container}>
+      {appState?.activeTripId ? (
+        <View style={styles.row}>
+          <Text style={styles.label}>Trip Number: {appState.activeTripId}</Text>
+          <Button title="End Trip" onPress={handleEndTrip} disabled={loading} />
+        </View>
+      ) : (
+        <Button
+          title="Start New Trip"
+          onPress={handleCreateNewTrip}
+          disabled={loading || !canCreateNewTrip}
+        />
+      )}
+
       <Text style={styles.label}>Ride Status:</Text>
       <TextInput
         style={styles.input}
-        value={appState?.rideStatus}
-        onChangeText={handleUpdateAppStatus}
+        value={rideStatus}
+        onChangeText={setRideStatus}
+        onBlur={handleUpdateAppStatus}
         placeholder="Ride Status"
-        disabled={!canEditAppStatus}
+        editable={!isDisabled && canEditAppStatus}
       />
-
-      <Button title="Start New Trip" onPress={handleCreateNewTrip} disabled={!canCreateNewTrip} />
 
       <Text style={styles.label}>Geobox:</Text>
       {canEditGeobox ? (
@@ -81,6 +104,7 @@ const AppControls = () => {
           value={geobox}
           onChangeText={setGeobox}
           placeholder="Geobox JSON"
+          editable={!isDisabled}
         />
       ) : (
         <Text style={styles.text}>{JSON.stringify(appState?.homeGeobox || [])}</Text>
@@ -90,9 +114,9 @@ const AppControls = () => {
       <Switch
         value={trackingEnabled}
         onValueChange={setTrackingEnabled}
-        disabled={!canEditTracking || appState?.rideStatus === 'Home'}
+        disabled={!canEditTracking || isDisabled || appState?.rideStatus === 'Not active'}
       />
-      {appState.rideStatus === 'Home' ? (
+      {appState?.rideStatus === 'Not active' ? (
         <Text style={styles.text}>Tracking is turned off while inside the home geobox</Text>
       ) : null}
 
@@ -129,6 +153,12 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     marginTop: 4,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
 });
 
