@@ -104,3 +104,25 @@ func GetActiveTrip(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(activeTrip)
 }
+
+func GetLatestTripLocations(w http.ResponseWriter, r *http.Request) {
+	tripID, err := storage.GetActiveTripID()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if tripID == nil {
+		http.Error(w, "No active trip", http.StatusNotFound)
+		return
+	}
+
+	locations, err := storage.GetLocationsForTrip(*tripID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(locations)
+}
