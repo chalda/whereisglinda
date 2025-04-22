@@ -2,18 +2,15 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"sync"
 	"whereisglinda-backend/models"
 	"whereisglinda-backend/storage"
 )
 
-var (
-	locations   []models.TripLocation // Changed to store TripLocation
-	locationsMu sync.Mutex
-)
+// In memory push channel for new updates
+var locationChan = make(chan models.TripLocation, 10)
 
+// AddLocation receives a ping from the bus
 func AddLocation(w http.ResponseWriter, r *http.Request) {
 	var location models.TripLocation
 	if err := json.NewDecoder(r.Body).Decode(&location); err != nil {
@@ -21,38 +18,24 @@ func AddLocation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate that tripID, latitude, and longitude are provided
-	if location.TripID == 0 {
-		http.Error(w, "tripID is required", http.StatusBadRequest)
+	if location.TripID == 0 || location.Latitude == 0 || location.Longitude == 0 {
+		http.Error(w, "tripID, latitude, and longitude are required", http.StatusBadRequest)
 		return
 	}
-	if location.Latitude == 0 {
-		http.Error(w, "latitude is required", http.StatusBadRequest)
-		return
-	}
-	if location.Longitude == 0 {
-		http.Error(w, "longitude is required", http.StatusBadRequest)
-		return
-	}
-	// Check if the tripID exists
-	_, err := storage.GetTripByID(location.TripID)
-	if err != nil {
+
+	if _, err := storage.GetTripByID(location.TripID); err != nil {
 		http.Error(w, "Invalid tripID", http.StatusBadRequest)
 		return
 	}
 
-	// Save location to memory
-	locationsMu.Lock()
-	locations = append(locations, location)
-	locationsMu.Unlock()
+	location.InGeofence = storage.PointInPolygon(location.Location, storage.HOME_GEOFENCE)
 
-	// Save location to the database asynchronously
 	go func() {
-		if err := storage.SaveTripLocation(location); err != nil {
-			fmt.Printf("Failed to save location to database: %v\n", err)
+		_ = storage.SaveTripLocation(location)
+		if !location.InGeofence {
+			locationChan <- location
 		}
 	}()
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(location) // Respond with the saved location including tripID, lat, long
 }

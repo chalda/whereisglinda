@@ -22,6 +22,11 @@ func InitDB() {
 	// Create tables
 	createTables()
 
+	HOME_GEOFENCE, err = GetGeobox()
+	if err != nil {
+		log.Fatalf("Failed to get geobox: %v", err)
+	}
+
 	// Start a background routine to end inactive trips
 	go func() {
 		for {
@@ -32,24 +37,32 @@ func InitDB() {
 			time.Sleep(1 * time.Hour) // Run every hour
 		}
 	}()
+
+	go MonitorTripInactivity()
 }
 
 func createTables() {
 	// Create trips table
 	_, err := DB.Exec(`
         CREATE TABLE IF NOT EXISTS trips (
-            trip_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            start_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-            end_time DATETIME,
-            status TEXT,
-            ride_status TEXT
-        )
+			trip_id INTEGER PRIMARY KEY AUTOINCREMENT,
+			name TEXT,
+			start_time DATETIME NOT NULL,
+			end_time DATETIME,
+			ride_status TEXT DEFAULT '',
+			active BOOLEAN DEFAULT 1
+		);
     `)
+
 	if err != nil {
 		log.Fatalf("Failed to create trips table: %v", err)
 	}
 
+	_, err = DB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS one_active_trip ON trips (active) WHERE active = 1;`)
+
+	if err != nil {
+		log.Fatalf("Failed to create trips indexx: %v", err)
+	}
 	// Create locations table
 	_, err = DB.Exec(`
         CREATE TABLE IF NOT EXISTS locations (
@@ -57,6 +70,7 @@ func createTables() {
             trip_id INTEGER NOT NULL,
             latitude REAL NOT NULL,
             longitude REAL NOT NULL,
+			in_geofence BOOLEAN,
             timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (trip_id) REFERENCES trips(trip_id)
         )
@@ -65,8 +79,8 @@ func createTables() {
 		log.Fatalf("Failed to create locations table: %v", err)
 	}
 
-	 // Create geobox table
-	 _, err = DB.Exec(`
+	// Create geobox table
+	_, err = DB.Exec(`
 	 CREATE TABLE IF NOT EXISTS geobox (
 		 id INTEGER PRIMARY KEY AUTOINCREMENT,
 		 geobox_id INTEGER NOT NULL,
@@ -74,7 +88,7 @@ func createTables() {
 		 longitude REAL NOT NULL
 	 )
  `)
- if err != nil {
-	 log.Fatalf("Failed to create geobox table: %v", err)
- }
+	if err != nil {
+		log.Fatalf("Failed to create geobox table: %v", err)
+	}
 }

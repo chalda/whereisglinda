@@ -6,6 +6,8 @@ import (
 	"whereisglinda-backend/models"
 )
 
+var HOME_GEOFENCE = []models.Location{}
+
 // SaveGeobox saves a set of geobox coordinates to the database
 func SaveGeobox(geobox []models.Location) error {
 	if len(geobox) < 1 {

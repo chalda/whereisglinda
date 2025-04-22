@@ -9,7 +9,8 @@ type Location struct {
 
 type TripLocation struct {
 	Location
-	TripID    int        `json:"tripId"`
-	ID        int        `json:"id"`
-	Timestamp *time.Time `json:"timestamp"`
+	ID         int        `json:"id"`
+	TripID     int        `json:"tripId"`
+	InGeofence bool       `json:"inGeofence"`
+	Timestamp  *time.Time `json:"timestamp"`
 }

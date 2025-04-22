@@ -4,56 +4,43 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sync"
 )
 
-var (
-	locationUpdates []map[string]interface{}
-	mu              sync.Mutex
-)
-
-// AddLocationHandler handles incoming location updates
-func AddLocationHandler(w http.ResponseWriter, r *http.Request) {
-	var locationUpdate map[string]interface{}
-	if err := json.NewDecoder(r.Body).Decode(&locationUpdate); err != nil {
-		http.Error(w, "Invalid location update", http.StatusBadRequest)
-		return
-	}
-
-	mu.Lock()
-	locationUpdates = append(locationUpdates, locationUpdate)
-	if len(locationUpdates) > 100 {
-		locationUpdates = locationUpdates[1:] // Keep only the last 100 updates
-	}
-	mu.Unlock()
-
-	w.WriteHeader(http.StatusOK)
-}
-
-// SubscribeLocation streams location updates to clients
 func SubscribeLocation(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
+	// Handle OPTIONS request
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "Streaming unsupported", http.StatusInternalServerError)
+		return
+	}
+
+	notify := w.(http.CloseNotifier).CloseNotify()
+
 	for {
-		mu.Lock()
-		if len(locationUpdates) == 0 {
-			mu.Unlock()
-			continue
-		}
-
-		latestUpdate := locationUpdates[len(locationUpdates)-1]
-		mu.Unlock()
-
-		data, err := json.Marshal(latestUpdate)
-		if err != nil {
-			http.Error(w, "Failed to encode location update", http.StatusInternalServerError)
+		select {
+		case <-notify:
 			return
+		case loc := <-locationChan:
+			data, err := json.Marshal(loc)
+			if err != nil {
+				fmt.Fprintf(w, "event: error\ndata: %s\n\n", err.Error())
+				flusher.Flush()
+				continue
+			}
+			fmt.Fprintf(w, "data: %s\n\n", data)
+			flusher.Flush()
 		}
-
-		fmt.Fprintf(w, "data: %s\n\n", data)
-		w.(http.Flusher).Flush()
 	}
 }

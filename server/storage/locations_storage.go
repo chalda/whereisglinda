@@ -18,7 +18,7 @@ func SaveTripLocation(location models.TripLocation) error {
 }
 
 func GetLocationsForTrip(tripID int) ([]models.TripLocation, error) {
-	rows, err := DB.Query("SELECT id, trip_id, latitude, longitude FROM locations WHERE trip_id = ? ORDER BY id", tripID)
+	rows, err := DB.Query("SELECT id, trip_id, latitude, longitude, timestamp FROM locations WHERE trip_id = ? ORDER BY id", tripID)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func GetLocationsForTrip(tripID int) ([]models.TripLocation, error) {
 	locations := make([]models.TripLocation, 0)
 	for rows.Next() {
 		var location models.TripLocation
-		err := rows.Scan(&location.ID, &location.TripID, &location.Latitude, &location.Longitude)
+		err := rows.Scan(&location.ID, &location.TripID, &location.Latitude, &location.Longitude, &location.Timestamp)
 		if err != nil {
 			return nil, err
 		}
@@ -36,20 +36,19 @@ func GetLocationsForTrip(tripID int) ([]models.TripLocation, error) {
 	return locations, nil
 }
 
-// // IncrementTripID increments the current trip ID in the database
-// func IncrementTripID() error {
-// 	_, err := DB.Exec("UPDATE trips SET currentTripID = currentTripID + 1 WHERE id = 1")
-// 	if err != nil {
-// 		return fmt.Errorf("failed to increment trip ID: %w", err)
-// 	}
-// 	return nil
-// }
-
-// // SetCurrentTripID updates the current trip ID in the database
-// func SetCurrentTripID(tripID int) error {
-// 	_, err := DB.Exec("UPDATE trips SET currentTripID = ? WHERE id = 1", tripID)
-// 	if err != nil {
-// 		return fmt.Errorf("failed to set current trip ID: %w", err)
-// 	}
-// 	return nil
-// }
+func PointInPolygon(p models.Location, polygon []models.Location) bool {
+	n := len(polygon)
+	inside := false
+	j := n - 1
+	for i := 0; i < n; i++ {
+		xi, yi := polygon[i].Latitude, polygon[i].Longitude
+		xj, yj := polygon[j].Latitude, polygon[j].Longitude
+		intersect := ((yi > p.Longitude) != (yj > p.Longitude)) &&
+			(p.Latitude < (xj-xi)*(p.Longitude-yi)/(yj-yi)+xi)
+		if intersect {
+			inside = !inside
+		}
+		j = i
+	}
+	return inside
+}
