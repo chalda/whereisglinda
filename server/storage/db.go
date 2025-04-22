@@ -22,9 +22,9 @@ func InitDB() {
 	// Create tables
 	createTables()
 
-	HOME_GEOFENCE, err = GetGeobox()
+	HOME_GEOFENCE, err = GetGeofence()
 	if err != nil {
-		log.Fatalf("Failed to get geobox: %v", err)
+		log.Fatalf("Failed to get geofence: %v", err)
 	}
 
 	// Start a background routine to end inactive trips
@@ -79,16 +79,16 @@ func createTables() {
 		log.Fatalf("Failed to create locations table: %v", err)
 	}
 
-	// Create geobox table
+	// Create geofence table
 	_, err = DB.Exec(`
-	 CREATE TABLE IF NOT EXISTS geobox (
+	 CREATE TABLE IF NOT EXISTS geofence (
 		 id INTEGER PRIMARY KEY AUTOINCREMENT,
-		 geobox_id INTEGER NOT NULL,
+		 geofence_id INTEGER NOT NULL,
 		 latitude REAL NOT NULL,
 		 longitude REAL NOT NULL
 	 )
  `)
 	if err != nil {
-		log.Fatalf("Failed to create geobox table: %v", err)
+		log.Fatalf("Failed to create geofence table: %v", err)
 	}
 }

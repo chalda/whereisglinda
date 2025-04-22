@@ -23,10 +23,10 @@ func SetupRoutes() *mux.Router {
 
 	all := []string{"driver", "bus", "admin"}
 
-	// Geobox Endpoints
-	router.HandleFunc("/geobox", handlers.GetLatestGeoboxHandler).Methods("GET") // Fetch latest geobox
-	router.HandleFunc("/geobox/{id}", handlers.GetGeoboxHandler).Methods("GET")  // Fetch geobox by ID
-	router.HandleFunc("/geobox", handlers.SaveGeoboxHandler).Methods("POST")     // Save geobox
+	// Geofence Endpoints
+	router.HandleFunc("/geofence", handlers.GetLatestGeofenceHandler).Methods("GET") // Fetch latest geofence
+	router.HandleFunc("/geofence/{id}", handlers.GetGeofenceHandler).Methods("GET")  // Fetch geofence by ID
+	router.HandleFunc("/geofence", handlers.SaveGeofenceHandler).Methods("POST")     // Save geofence
 
 	// Location Endpoints
 	router.HandleFunc("/locations", handlers.Authorize(all, handlers.AddLocation)).Methods("POST")  // Add location

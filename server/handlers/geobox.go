@@ -8,63 +8,63 @@ import (
 	"whereisglinda-backend/storage"
 )
 
-// GetGeoboxHandler retrieves a geobox by ID
-func GetGeoboxHandler(w http.ResponseWriter, r *http.Request) {
-	// Extract geobox_id from query parameters
-	geoboxIDStr := r.URL.Query().Get("id")
-	if geoboxIDStr == "" {
-		http.Error(w, "Missing geobox ID parameter", http.StatusBadRequest)
+// GetGeofenceHandler retrieves a geofence by ID
+func GetGeofenceHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract geofence_id from query parameters
+	geofenceIDStr := r.URL.Query().Get("id")
+	if geofenceIDStr == "" {
+		http.Error(w, "Missing geofence ID parameter", http.StatusBadRequest)
 		return
 	}
 
-	geoboxID, err := strconv.Atoi(geoboxIDStr)
+	geofenceID, err := strconv.Atoi(geofenceIDStr)
 	if err != nil {
-		http.Error(w, "Invalid geobox ID parameter", http.StatusBadRequest)
+		http.Error(w, "Invalid geofence ID parameter", http.StatusBadRequest)
 		return
 	}
 
-	geobox, err := storage.GetGeoboxByID(geoboxID)
+	geofence, err := storage.GetGeofenceByID(geofenceID)
 	if err != nil {
-		http.Error(w, "Failed to fetch geobox", http.StatusInternalServerError)
+		http.Error(w, "Failed to fetch geofence", http.StatusInternalServerError)
 		return
 	}
 
-	if geobox == nil {
-		http.Error(w, "Geobox not found", http.StatusNotFound)
+	if geofence == nil {
+		http.Error(w, "Geofence not found", http.StatusNotFound)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(geobox)
+	json.NewEncoder(w).Encode(geofence)
 }
 
-// GetLatestGeoboxHandler retrieves the latest geobox
-func GetLatestGeoboxHandler(w http.ResponseWriter, r *http.Request) {
-	geobox, err := storage.GetGeobox()
+// GetLatestGeofenceHandler retrieves the latest geofence
+func GetLatestGeofenceHandler(w http.ResponseWriter, r *http.Request) {
+	geofence, err := storage.GetGeofence()
 	if err != nil {
-		http.Error(w, "Failed to fetch latest geobox", http.StatusInternalServerError)
+		http.Error(w, "Failed to fetch latest geofence", http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(geobox)
+	json.NewEncoder(w).Encode(geofence)
 }
 
-// SaveGeoboxHandler saves a new geobox
-func SaveGeoboxHandler(w http.ResponseWriter, r *http.Request) {
-	var geobox []models.Location
-	if err := json.NewDecoder(r.Body).Decode(&geobox); err != nil {
+// SaveGeofenceHandler saves a new geofence
+func SaveGeofenceHandler(w http.ResponseWriter, r *http.Request) {
+	var geofence []models.Location
+	if err := json.NewDecoder(r.Body).Decode(&geofence); err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 
-	if len(geobox) != 4 {
-		http.Error(w, "Geobox must contain exactly 4 coordinates", http.StatusBadRequest)
+	if len(geofence) != 4 {
+		http.Error(w, "Geofence must contain exactly 4 coordinates", http.StatusBadRequest)
 		return
 	}
 
-	if err := storage.SaveGeobox(geobox); err != nil {
-		http.Error(w, "Failed to save geobox", http.StatusInternalServerError)
+	if err := storage.SaveGeofence(geofence); err != nil {
+		http.Error(w, "Failed to save geofence", http.StatusInternalServerError)
 		return
 	}
 

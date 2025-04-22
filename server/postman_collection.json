@@ -50,37 +50,37 @@
             "response": []
         },
         {
-            "name": "Get Latest Geobox",
+            "name": "Get Latest Geofence",
             "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                    "raw": "http://localhost:8080/geobox",
+                    "raw": "http://localhost:8080/geofence",
                     "protocol": "http",
                     "host": ["localhost"],
                     "port": "8080",
-                    "path": ["geobox"]
+                    "path": ["geofence"]
                 }
             },
             "response": []
         },
         {
-            "name": "Get Geobox by ID",
+            "name": "Get Geofence by ID",
             "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                    "raw": "http://localhost:8080/geobox/1",
+                    "raw": "http://localhost:8080/geofence/1",
                     "protocol": "http",
                     "host": ["localhost"],
                     "port": "8080",
-                    "path": ["geobox", "1"]
+                    "path": ["geofence", "1"]
                 }
             },
             "response": []
         },
         {
-            "name": "Save Geobox",
+            "name": "Save Geofence",
             "request": {
                 "method": "POST",
                 "header": [
@@ -94,11 +94,11 @@
                     "raw": "[\n  { \"latitude\": 37.7749, \"longitude\": -122.4194 },\n  { \"latitude\": 34.0522, \"longitude\": -118.2437 },\n  { \"latitude\": 40.7128, \"longitude\": -74.0060 },\n  { \"latitude\": 51.5074, \"longitude\": -0.1278 }\n]"
                 },
                 "url": {
-                    "raw": "http://localhost:8080/geobox",
+                    "raw": "http://localhost:8080/geofence",
                     "protocol": "http",
                     "host": ["localhost"],
                     "port": "8080",
-                    "path": ["geobox"]
+                    "path": ["geofence"]
                 }
             },
             "response": []

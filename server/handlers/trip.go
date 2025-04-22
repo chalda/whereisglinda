@@ -106,7 +106,7 @@ func GetActiveTrip(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := map[string]interface{}{
-		"id":         trip.ID,
+		"tripId":         trip.TripID,
 		"active":     trip.Active,
 		"rideStatus": rideStatus,
 		"startTime":  trip.StartTime,

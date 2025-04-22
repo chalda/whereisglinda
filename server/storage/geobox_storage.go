@@ -8,63 +8,63 @@ import (
 
 var HOME_GEOFENCE = []models.Location{}
 
-// SaveGeobox saves a set of geobox coordinates to the database
-func SaveGeobox(geobox []models.Location) error {
-	if len(geobox) < 1 {
-		return fmt.Errorf("geobox must contain at least 1 coordinate")
+// SaveGeofence saves a set of geofence coordinates to the database
+func SaveGeofence(geofence []models.Location) error {
+	if len(geofence) < 1 {
+		return fmt.Errorf("geofence must contain at least 1 coordinate")
 	}
 
-	// Generate a new geobox_id
-	var geoboxID int64
-	err := DB.QueryRow("SELECT IFNULL(MAX(geobox_id), 0) + 1 FROM geobox").Scan(&geoboxID)
+	// Generate a new geofence_id
+	var geofenceID int64
+	err := DB.QueryRow("SELECT IFNULL(MAX(geofence_id), 0) + 1 FROM geofence").Scan(&geofenceID)
 	if err != nil {
-		return fmt.Errorf("failed to generate geobox ID: %w", err)
+		return fmt.Errorf("failed to generate geofence ID: %w", err)
 	}
 
-	// Insert all coordinates with the same geobox_id
-	for _, point := range geobox {
-		_, err := DB.Exec("INSERT INTO geobox (geobox_id, latitude, longitude) VALUES (?, ?, ?)", geoboxID, point.Latitude, point.Longitude)
+	// Insert all coordinates with the same geofence_id
+	for _, point := range geofence {
+		_, err := DB.Exec("INSERT INTO geofence (geofence_id, latitude, longitude) VALUES (?, ?, ?)", geofenceID, point.Latitude, point.Longitude)
 		if err != nil {
-			return fmt.Errorf("failed to save geobox point: %w", err)
+			return fmt.Errorf("failed to save geofence point: %w", err)
 		}
 	}
 
 	return nil
 }
 
-// GetGeobox retrieves the latest set of geobox coordinates from the database
-func GetGeobox() ([]models.Location, error) {
-	// Query the latest geobox_id
-	var geoboxID int
-	err := DB.QueryRow("SELECT MAX(geobox_id) FROM geobox").Scan(&geoboxID)
+// GetGeofence retrieves the latest set of geofence coordinates from the database
+func GetGeofence() ([]models.Location, error) {
+	// Query the latest geofence_id
+	var geofenceID int
+	err := DB.QueryRow("SELECT MAX(geofence_id) FROM geofence").Scan(&geofenceID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil // No geobox found
+			return nil, nil // No geofence found
 		}
-		return nil, fmt.Errorf("failed to fetch latest geobox ID: %w", err)
+		return nil, fmt.Errorf("failed to fetch latest geofence ID: %w", err)
 	}
 
-	return GetGeoboxByID(geoboxID)
+	return GetGeofenceByID(geofenceID)
 }
 
-// GetGeoboxByID retrieves a geobox by its ID
-func GetGeoboxByID(geoboxID int) ([]models.Location, error) {
-	// Query the coordinates for the given geobox_id
-	rows, err := DB.Query("SELECT latitude, longitude FROM geobox WHERE geobox_id = ?", geoboxID)
+// GetGeofenceByID retrieves a geofence by its ID
+func GetGeofenceByID(geofenceID int) ([]models.Location, error) {
+	// Query the coordinates for the given geofence_id
+	rows, err := DB.Query("SELECT latitude, longitude FROM geofence WHERE geofence_id = ?", geofenceID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch geobox: %w", err)
+		return nil, fmt.Errorf("failed to fetch geofence: %w", err)
 	}
 	defer rows.Close()
 
-	var geobox []models.Location
+	var geofence []models.Location
 	for rows.Next() {
 		var point models.Location
 		err := rows.Scan(&point.Latitude, &point.Longitude)
 		if err != nil {
-			return nil, fmt.Errorf("failed to scan geobox point: %w", err)
+			return nil, fmt.Errorf("failed to scan geofence point: %w", err)
 		}
-		geobox = append(geobox, point)
+		geofence = append(geofence, point)
 	}
 
-	return geobox, nil
+	return geofence, nil
 }
