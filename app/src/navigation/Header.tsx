@@ -152,6 +152,12 @@ const Header = ({ navigation }) => {
             </Text>
           )}
         </View>
+        <View style={{ position: 'absolute', right: "50%" }}>
+        {latestLocation?.timestamp && (
+            <Text style={[styles.infoText, { fontSize: 14 }]}>
+              Last location update: {new Date(latestLocation.timestamp).toLocaleString('en-US', { timeZone: 'America/New_York' })}
+            </Text>
+          )}</View>
         <Text style={styles.infoText}>Where will Glinda appear next?</Text>
       </View>
     </View>

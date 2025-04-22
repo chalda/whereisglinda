@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect } from 'react';
 import debounce from 'lodash.debounce';
 
 import { Trip, Location, UserRole, TripLocation } from './types';
-import { fetchLocations, fetchActiveTrip, fetchGeobox } from './utils/api';
+import { fetchLocations, fetchActiveTrip, fetchGeofence } from './utils/api';
 import useSubscribe from './utils/useSubscribe';
 
 export interface AppContextProps {
@@ -15,8 +15,8 @@ export interface AppContextProps {
   activeTripId: number | null;
   locations: Location[];
   setLocations: (locations: Location[]) => void;
-  geobox: Location[] | null;
-  setGeobox: (geobox: Location[] | null) => void;
+  geofence: Location[] | null;
+  setGeofence: (geofence: Location[] | null) => void;
   latestLocation: TripLocation | null;
   setLatestLocation: (location: TripLocation | null) => void;
   locationSubscriptionEnabled: boolean;
@@ -34,22 +34,22 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [activeTrip, setActiveTrip] = useState<Trip | null>(null);
   const [activeTripId, setActiveTripId] = useState<number | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
-  const [geobox, setGeobox] = useState<Location[] | null>(null);
+  const [geofence, setGeofence] = useState<Location[] | null>(null);
   const [latestLocation, setLatestLocation] = useState<TripLocation | null>(null);
   const [locationSubscriptionEnabled, setLocationSubscriptionEnabled] = useState(false);
 
   useEffect(() => {
-    const fetchGeoboxData = async () => {
+    const fetchGeofenceData = async () => {
       try {
-        const geoboxData = await fetchGeobox();
-        setGeobox(geoboxData);
+        const geofenceData = await fetchGeofence();
+        setGeofence(geofenceData);
       } catch (err) {
-        console.error('Failed to fetch the latest geobox:', err.message);
+        console.error('Failed to fetch the latest geofence:', err.message);
       }
     };
 
-    fetchGeoboxData();
-  }, []); // Fetch geobox only once when the component mounts
+    fetchGeofenceData();
+  }, []); // Fetch geofence only once when the component mounts
 
   useEffect(() => {
     const fetchActiveTripData = async () => {
@@ -115,8 +115,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         activeTripId,
         locations,
         setLocations,
-        geobox,
-        setGeobox,
+        geofence,
+        setGeofence,
         latestLocation,
         setLatestLocation,
         locationSubscriptionEnabled,

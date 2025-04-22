@@ -39,8 +39,8 @@ export function App() {
   if (!appReady) return null;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <AppProvider>
+    <AppProvider>
+      <SafeAreaView style={styles.safeArea}>
         <NavigationContainer
           theme={DefaultTheme}
           linking={{
@@ -49,8 +49,8 @@ export function App() {
           }}>
           <HeaderNavigator />
         </NavigationContainer>
-      </AppProvider>
-    </SafeAreaView>
+      </SafeAreaView>
+    </AppProvider>
   );
 }
 

@@ -12,14 +12,14 @@ import { HeaderNavigatorParamList } from '../navigation';
 type MapScreenRouteProp = RouteProp<HeaderNavigatorParamList, 'Map'>;
 
 const Map: React.FC = () => {
-  const { locations, geobox } = useContext(AppContext);
+  const { locations, geofence } = useContext(AppContext);
 
   return (
     <View style={styles.container}>
       <MapContent
         locations={locations}
         lastLocation={locations ? locations[locations.length - 1] : null}
-        geofence={geobox}
+        geofence={geofence}
       />
     </View>
   );

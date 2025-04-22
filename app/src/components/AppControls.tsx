@@ -6,7 +6,8 @@ import { AppContext } from '../AppContext';
 import { createNewTrip, updateTrip, endTrip, fetchActiveTrip } from '../utils/api';
 
 const AppControls = () => {
-  const { apiKey, userRole, activeTrip, activeTripId, setActiveTrip, geobox } = useContext(AppContext);
+  const { apiKey, userRole, activeTrip, activeTripId, setActiveTrip, geofence } =
+    useContext(AppContext);
   const [loading, setLoading] = useState<boolean>(false);
   const [trackingEnabled, setTrackingEnabled] = useState<boolean>(false);
 
@@ -88,11 +89,11 @@ const AppControls = () => {
       <Text style={styles.label}>Ride Status:</Text>
       <Text style={styles.text}>{activeTrip?.rideStatus || 'N/A'}</Text>
 
-      <Text style={styles.label}>Geobox:</Text>
-      {geobox ? (
-        <Text style={styles.text}>{JSON.stringify(geobox, null, 2)}</Text> // Prettified JSON
+      <Text style={styles.label}>Geofence:</Text>
+      {geofence ? (
+        <Text style={styles.text}>{JSON.stringify(geofence, null, 2)}</Text> // Prettified JSON
       ) : (
-        <Text style={styles.text}>Loading geobox...</Text>
+        <Text style={styles.text}>Loading geofence...</Text>
       )}
 
       <LocationTracker

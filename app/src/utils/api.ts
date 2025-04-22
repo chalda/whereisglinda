@@ -134,9 +134,9 @@ export const fetchActiveTrip = async (apiKey?: string): Promise<Trip | null> => 
 };
 
 /**
- * Fetch the latest geobox
- * @returns The latest geobox
+ * Fetch the latest geofence
+ * @returns The latest geofence
  */
-export const fetchGeobox = async (): Promise<Location[]> => {
-  return apiFetch<Location[]>('/geobox');
+export const fetchGeofence = async (): Promise<Location[]> => {
+  return apiFetch<Location[]>('/geofence');
 };
