@@ -22,6 +22,10 @@ func InitDB() {
 	// Create tables
 	createTables()
 
+	// populate dummy data
+	//@TODO: remove this in production
+	PopulateDummyData()
+
 	HOME_GEOFENCE, err = GetGeofence()
 	if err != nil {
 		log.Fatalf("Failed to get geofence: %v", err)

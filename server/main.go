@@ -31,9 +31,6 @@ func main() {
 	// Initialize the database
 	storage.InitDB()
 
-	// Populate the database with dummy data
-	storage.PopulateDummyData()
-
 	// Set up routes
 	router := routes.SetupRoutes()
 

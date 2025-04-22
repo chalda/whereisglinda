@@ -9,17 +9,7 @@ import (
 	"whereisglinda-backend/models"
 )
 
-type TripWithLocation struct {
-	TripID     int
-	Active     bool
-	RideStatus string
-	StartTime  time.Time
-	EndTime    *time.Time
-	InGeofence sql.NullBool
-	Timestamp  sql.NullTime
-}
-
-func GetActiveTripWithLatestLocation(db *sql.DB) (*TripWithLocation, error) {
+func GetActiveTripWithLatestLocation(db *sql.DB) (*models.TripWithLocation, error) {
 	query := `
 	SELECT t.id, t.active, t.ride_status, t.start_time, t.end_time,
 	       l.in_geofence, l.timestamp
@@ -31,7 +21,7 @@ func GetActiveTripWithLatestLocation(db *sql.DB) (*TripWithLocation, error) {
 	LIMIT 1;
 	`
 
-	var trip TripWithLocation
+	var trip models.TripWithLocation
 	err := db.QueryRow(query).Scan(
 		&trip.TripID, &trip.Active, &trip.RideStatus,
 		&trip.StartTime, &trip.EndTime,

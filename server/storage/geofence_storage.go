@@ -36,7 +36,7 @@ func SaveGeofence(geofence []models.Location) error {
 func GetGeofence() ([]models.Location, error) {
 	// Query the latest geofence_id
 	var geofenceID int
-	err := DB.QueryRow("SELECT MAX(geofence_id) FROM geofence").Scan(&geofenceID)
+	err := DB.QueryRow("SELECT geofence_id FROM geofence ORDER BY geofence_id DESC LIMIT 1").Scan(&geofenceID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil // No geofence found
