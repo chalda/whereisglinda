@@ -2,13 +2,11 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
 	"whereisglinda-backend/routes"
 	"whereisglinda-backend/storage"
 
 	"github.com/joho/godotenv"
-	"github.com/rs/cors"
 )
 
 var (
@@ -31,15 +29,6 @@ func main() {
 	// Initialize the database
 	storage.InitDB()
 
-	// Set up routes
-	router := routes.SetupRoutes()
-
-	// Configure CORS
-	corsHandler := cors.AllowAll().Handler(router)
-
-	// Start the server
-	log.Println("Starting server on :8080...")
-	if err := http.ListenAndServe(":8080", corsHandler); err != nil {
-		log.Fatalf("Could not start server: %s\n", err.Error())
-	}
+	// Start http server
+	routes.StartServer()
 }

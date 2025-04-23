@@ -52,6 +52,10 @@ func PopulateDummyData() {
 	}
 
 	dummyLocations := []models.TripLocation{
+		{Location: models.Location{Latitude: 40.66, Longitude: -73.92}, TripID: *tripID},
+		{Location: models.Location{Latitude: 40.67, Longitude: -73.93}, TripID: *tripID},
+		{Location: models.Location{Latitude: 40.68, Longitude: -73.93}, TripID: *tripID},
+		{Location: models.Location{Latitude: 40.6888631, Longitude: -73.9359374}, TripID: *tripID},
 		{Location: models.Location{Latitude: 40.7000, Longitude: -73.9300}, TripID: *tripID},
 		{Location: models.Location{Latitude: 40.7020, Longitude: -73.9250}, TripID: *tripID},
 		{Location: models.Location{Latitude: 40.7040, Longitude: -73.9280}, TripID: *tripID},
