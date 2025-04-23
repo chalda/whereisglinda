@@ -30,8 +30,8 @@ const seaMonster = Asset.fromModule(require('../assets/octopus_icon.png'));
 
 type MapContentProps = {
   locations: Location[];
-  lastLocation?: Location | null;
-  geofence?: Location[]; // Ensure geofence is typed as an array of Location
+  latestLocation?: Location | null;
+  geofence?: Location[] | null; // Ensure geofence is typed as an array of Location
 };
 
 const googleMapsApiKey = Constants?.expoConfig?.extra?.googleMapsApiKey;
@@ -81,11 +81,10 @@ const pirateMapStyle = [
   },
 ];
 
-const MapContent: React.FC<MapContentProps> = ({ locations, geofence, lastLocation }) => {
+const MapContent: React.FC<MapContentProps> = ({ locations, geofence, latestLocation }) => {
   const mapRef = useRef<MapView>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isUserInteracting, setIsUserInteracting] = useState(false);
-  const tiltAnim = useRef(new Animated.Value(0)).current;
 
   const centerMap = (location: Location) => {
     const region: Region = {
@@ -98,15 +97,15 @@ const MapContent: React.FC<MapContentProps> = ({ locations, geofence, lastLocati
   };
 
   useEffect(() => {
-    if (!lastLocation) {
+    if (!latestLocation) {
       mapRef.current?.animateToRegion(BROOKLYN_REGION, 1000);
       return;
     }
 
     if (!isUserInteracting) {
-      centerMap(lastLocation);
+      centerMap(latestLocation);
     }
-  }, [lastLocation, isUserInteracting]);
+  }, [latestLocation, isUserInteracting]);
 
   const scheduleRecenter = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -118,53 +117,6 @@ const MapContent: React.FC<MapContentProps> = ({ locations, geofence, lastLocati
   const handleRegionChange = () => {
     if (!isUserInteracting) setIsUserInteracting(true);
     scheduleRecenter();
-  };
-
-  const isInsideGeofence = () => {
-    if (!geofence || !lastLocation) return false;
-
-    const lats = geofence.map((pt) => pt.latitude);
-    const lngs = geofence.map((pt) => pt.longitude);
-    const [minLat, maxLat] = [Math.min(...lats), Math.max(...lats)];
-    const [minLng, maxLng] = [Math.min(...lngs), Math.max(...lngs)];
-
-    return (
-      lastLocation.latitude >= minLat &&
-      lastLocation.latitude <= maxLat &&
-      lastLocation.longitude >= minLng &&
-      lastLocation.longitude <= maxLng
-    );
-  };
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(tiltAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-          easing: Easing.inOut(Easing.sin),
-        }),
-        Animated.timing(tiltAnim, {
-          toValue: -1,
-          duration: 500,
-          useNativeDriver: true,
-          easing: Easing.inOut(Easing.sin),
-        }),
-      ])
-    ).start();
-  }, []);
-
-  const tilt = tiltAnim.interpolate({
-    inputRange: [-1, 0, 1],
-    outputRange: ['-5deg', '0deg', '5deg'],
-  });
-
-  const getTimeAgo = (timestamp: number | string) => {
-    const seconds = Math.floor((Date.now() - new Date(timestamp).getTime()) / 1000);
-    if (seconds < 60) return `${seconds}s ago`;
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-    return `${Math.floor(seconds / 3600)}h ago`;
   };
 
   return (
@@ -191,36 +143,20 @@ const MapContent: React.FC<MapContentProps> = ({ locations, geofence, lastLocati
         )}
 
         {/* Marker for last known location */}
-        {lastLocation && (
+        {latestLocation && (
           <Marker
             coordinate={{
-              latitude: lastLocation.latitude,
-              longitude: lastLocation.longitude,
+              latitude: latestLocation.latitude,
+              longitude: latestLocation.longitude,
             }}
             anchor={{ x: 0.5, y: 0.5 }}
             image={bus.uri}
-            title="Last Known Location">
-            {/* <Animated.View style={{ transform: [{ rotate: tilt }] }}>
-              <Image
-                source={require('../assets/glinda_icon.png')}
-                style={{ width: 50, height: 50 }}
-                resizeMode="contain"
-              />
-            </Animated.View> */}
-            <Callout>
-              <View style={{ padding: 4 }}>
-                <Text>Last known location</Text>
-              </View>
-            </Callout>
-          </Marker>
+            title="Last Known Location"></Marker>
         )}
 
         {/* Geofence Polygon */}
         {geofence && <MysteryZone bounds={geofence} image={seaMonster} />}
       </MapView>
-
-      {/* Fog overlay when inside geofence */}
-      {isInsideGeofence() && <View style={styles.fogOverlay} pointerEvents="none" />}
     </View>
   );
 };

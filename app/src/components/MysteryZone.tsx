@@ -1,5 +1,5 @@
-import React from 'react';
-import { Image } from 'react-native';
+import React, { useMemo } from 'react';
+import { Image, Platform, View } from 'react-native';
 import { Marker, Polygon, LatLng } from 'react-native-maps';
 
 interface Props {
@@ -16,21 +16,43 @@ const getCenter = (points: LatLng[]): LatLng => {
   };
 };
 
+// Expand polygon by n degrees of latitude/longitude
+const expandPolygon = (points: LatLng[], offset = 0.001): LatLng[] => {
+  return points.map((p) => ({
+    latitude: p.latitude + (p.latitude > 0 ? offset : -offset),
+    longitude: p.longitude + (p.longitude > 0 ? offset : -offset),
+  }));
+};
+
 export const MysteryZone = ({ bounds, image }: Props) => {
-  const center = getCenter(bounds);
+  const center = useMemo(() => getCenter(bounds), [bounds]);
+  const expandedBounds = useMemo(() => expandPolygon(bounds, 0.001), [bounds]);
 
   return (
     <>
+      {/* Solid inner mask */}
       <Polygon
         coordinates={bounds}
-        fillColor="rgba(255,255,255,0.85)"
+        fillColor="rgba(0,0,0,0.85)"
         strokeColor="transparent"
         strokeWidth={0}
+        zIndex={10}
       />
+
+      {/* Outer faded edge */}
+      <Polygon
+        coordinates={expandedBounds}
+        fillColor={Platform.OS === 'ios' ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.3)'}
+        strokeColor="transparent"
+        strokeWidth={0}
+        zIndex={9}
+      />
+
+      {/* Decorative center image */}
       <Marker coordinate={center} anchor={{ x: 0.5, y: 0.5 }} tracksViewChanges={false}>
         <Image
           source={image}
-          style={{ width: 80, height: 80, opacity: 0.9 }}
+          style={{ width: 90, height: 90, opacity: 0.9 }}
           resizeMode="contain"
         />
       </Marker>

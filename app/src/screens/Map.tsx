@@ -1,7 +1,6 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useContext } from 'react';
 import { View, StyleSheet } from 'react-native';
 
-import AppControls from '../components/AppControls';
 import MapContent from '../components/MapContent';
 import { AppContext } from '../AppContext';
 
@@ -12,15 +11,11 @@ import { HeaderNavigatorParamList } from '../navigation';
 type MapScreenRouteProp = RouteProp<HeaderNavigatorParamList, 'Map'>;
 
 const Map: React.FC = () => {
-  const { locations, geofence } = useContext(AppContext);
+  const { locations, latestLocation, geofence } = useContext(AppContext);
 
   return (
     <View style={styles.container}>
-      <MapContent
-        locations={locations}
-        lastLocation={locations ? locations[locations.length - 1] : null}
-        geofence={geofence}
-      />
+      <MapContent locations={locations} latestLocation={latestLocation} geofence={geofence} />
     </View>
   );
 };
