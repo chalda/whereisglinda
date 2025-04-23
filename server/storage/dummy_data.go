@@ -12,12 +12,12 @@ import (
 
 // PopulateDummyData populates the database with dummy data for testing
 func PopulateDummyData() {
-	trip := models.Trip{
-		Name:       "Dummy Trip",
-		RideStatus: "Riding",
-		Active:     true,
-	}
-	err := CreateTrip(DB, &trip)
+	// trip := models.Trip{
+	// 	Name:       "Dummy Trip",
+	// 	RideStatus: "Riding",
+	// 	Active:     true,
+	// }
+	err := StartTrip("", "Riding")
 	if err != nil {
 		log.Printf("Failed to insert dummy trip: %v", err)
 		return
