@@ -7,7 +7,5 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.28
-	github.com/rs/cors v1.11.1
+	github.com/felixge/httpsnoop v1.0.4 // indirect
 )
-
-require github.com/felixge/httpsnoop v1.0.4 // indirect
