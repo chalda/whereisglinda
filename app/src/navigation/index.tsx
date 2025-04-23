@@ -1,5 +1,7 @@
 import { NavigationProp } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+
 import React from 'react';
 
 import About from '../screens/About';
@@ -18,27 +20,42 @@ export type HeaderNavigatorParamList = {
 export type HeaderNavigation = NavigationProp<HeaderNavigatorParamList>;
 const Stack = createStackNavigator<HeaderNavigatorParamList>();
 
-// Combined HeaderNavigator (Stack Navigator + Header)
+const Tab = createMaterialTopTabNavigator();
+
 const HeaderNavigator = () => {
   return (
-    <Stack.Navigator
-      initialRouteName="Map"
+    <Tab.Navigator
+      tabBar={(props) => <Header {...props} />}
       screenOptions={{
-        header: ({ navigation }) => <Header navigation={navigation} />, // Custom header globally applied
+        swipeEnabled: false,
       }}>
-      <Stack.Screen name="Map" component={Map} />
-      <Stack.Screen name="About" component={About} />
-      <Stack.Screen name="Hire" component={HireGlinda} />
-      <Stack.Screen name="Login" component={DriverLogin} />
-    </Stack.Navigator>
+      <Tab.Screen name="Map" component={Map} />
+      <Tab.Screen name="About" component={About} />
+      <Tab.Screen name="Hire" component={HireGlinda} />
+      <Tab.Screen name="Login" component={DriverLogin} />
+    </Tab.Navigator>
   );
 };
+
+// Combined HeaderNavigator (Stack Navigator + Header)
+// const HeaderNavigator = () => {
+//   return (
+//     <Stack.Navigator
+//       initialRouteName="Map"
+//       screenOptions={{
+//         header: ({ navigation }) => <Header navigation={navigation} />, // Custom header globally applied
+//       }}>
+//       <Stack.Screen name="Map" component={Map} />
+//       <Stack.Screen name="About" component={About} />
+//       <Stack.Screen name="Hire" component={HireGlinda} />
+//       <Stack.Screen name="Login" component={DriverLogin} />
+//     </Stack.Navigator>
+//   );
+// };
 
 HeaderNavigator.displayName = 'HeaderNavigator';
 
 export default HeaderNavigator;
-
-
 
 /****
  * 
@@ -166,7 +183,6 @@ RootStack.displayName = 'RootStack';
 // }
 
  */
-
 
 /**
  * #nav-bar {

@@ -62,7 +62,10 @@
                 "name": "Go Server"
             }
         ],
-        "nxConsole.nxWorkspacePath": ".."
+        "nxConsole.nxWorkspacePath": "..",
+        "files.exclude": {
+            "**/.expo": true
+        }
     },
     "launch": {
         "configurations": [

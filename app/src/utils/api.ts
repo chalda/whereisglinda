@@ -124,7 +124,7 @@ export const updateTrip = async (
  */
 export const fetchActiveTrip = async (apiKey?: string): Promise<Trip | null> => {
   try {
-    return await apiFetch<Trip>('/trips/active', apiKey);
+    return await apiFetch<Trip>('/trip/active', apiKey);
   } catch (err) {
     if (err.message.includes('404')) {
       return null; // No active trip

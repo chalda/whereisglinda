@@ -1,4 +1,4 @@
-import React, { useRef, useState, useContext } from 'react';
+import React, { useRef, useContext } from 'react';
 import {
   View,
   Text,
@@ -9,9 +9,10 @@ import {
   StyleSheet,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-// import { Asset } from 'expo-asset';
 import { AppContext } from '../AppContext';
+import { getTimeAgo } from '../utils/getTimeAgo';
 
+// import { Asset } from 'expo-asset';
 // const city_parallax = Asset.fromModule(require('../assets/cartoon_city.png'));
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -28,11 +29,11 @@ const BUTTONS = [
 const PARALLAX_CROP_HEIGHT = 260;
 const PARALLAX_TOP_OFFSET = 60;
 
-const Header = ({ navigation }) => {
-  const { activeTrip, latestLocation } = useContext(AppContext);
-  const [active, setActive] = useState('Find Glinda');
+const Header = ({ navigation, state }) => {
+  const { activeTrip } = useContext(AppContext);
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const parallaxAnim = useRef(new Animated.Value(0)).current;
+  const active = state.routeNames[state.index];
 
   const triggerSpin = () => {
     rotateAnim.setValue(0);
@@ -74,7 +75,6 @@ const Header = ({ navigation }) => {
               <TouchableOpacity
                 key={btn.label}
                 onPress={() => {
-                  setActive(btn.label);
                   navigation.navigate(btn.route);
                   triggerSpin();
                 }}
@@ -146,18 +146,14 @@ const Header = ({ navigation }) => {
         <View style={{ position: 'absolute', left: 20 }}>
           <Text style={[styles.infoText, { fontSize: 14 }]}>Bus Status:</Text>
           <Text style={[styles.infoText, { fontSize: 14 }]}>{activeTrip?.rideStatus || 'N/A'}</Text>
-          {latestLocation?.timestamp && (
+        </View>
+        <View style={{ position: 'absolute', right: '50%' }}>
+          {activeTrip?.lastUpdate && (
             <Text style={[styles.infoText, { fontSize: 14 }]}>
-              Last location update: {new Date(latestLocation.timestamp).toLocaleString('en-US', { timeZone: 'America/New_York' })}
+              Last seen: {getTimeAgo(activeTrip.lastUpdate)}
             </Text>
           )}
         </View>
-        <View style={{ position: 'absolute', right: "50%" }}>
-        {latestLocation?.timestamp && (
-            <Text style={[styles.infoText, { fontSize: 14 }]}>
-              Last location update: {new Date(latestLocation.timestamp).toLocaleString('en-US', { timeZone: 'America/New_York' })}
-            </Text>
-          )}</View>
         <Text style={styles.infoText}>Where will Glinda appear next?</Text>
       </View>
     </View>

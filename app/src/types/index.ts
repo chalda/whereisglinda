@@ -14,8 +14,10 @@ export interface Trip {
   name: string;
   startTime: string | null; // Use string for ISO timestamps
   endTime: string | null; // Use string for ISO timestamps
-  status: string;
+  active: boolean;
   rideStatus: string;
+  inGeofence?: boolean;
+  lastUpdate?: string; // Use string for ISO timestamps
   locations?: Location[]; // Optional array of locations
 }
 

@@ -30,6 +30,7 @@
     "@react-native-community/geolocation": "^3.4.0",
     "@react-native-masked-view/masked-view": "0.3.2",
     "@react-navigation/elements": "^2.3.8",
+    "@react-navigation/material-top-tabs": "^7.2.10",
     "@react-navigation/native": "^7.1.6",
     "@react-navigation/native-stack": "^7.3.10",
     "@react-navigation/stack": "^7.2.10",
@@ -56,7 +57,8 @@
     "react-native-screens": "~4.4.0",
     "react-native-sse": "^1.2.1",
     "react-native-web": "0.19.13",
-    "react-native-web-google-api-maps": "github:chalda/react-native-web-google-api-maps"
+    "react-native-web-google-api-maps": "github:chalda/react-native-web-google-api-maps",
+    "react-native-pager-view": "6.5.1"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",

@@ -5,6 +5,9 @@ import { Trip, Location, UserRole, TripLocation } from './types';
 import { fetchLocations, fetchActiveTrip, fetchGeofence } from './utils/api';
 import useSubscribe from './utils/useSubscribe';
 
+const LOCATIONS_UPDATE_INTERVAL = 60 * 1000; // 30 seconds
+const ACTIVE_TRIP_UPDATE_INTERVAL = 30 * 1000; // 30 seconds
+
 export interface AppContextProps {
   apiKey: string;
   setApiKey: (key: string) => void;
@@ -72,19 +75,19 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       }
     };
 
-    const intervalId = setInterval(fetchActiveTripData, 30 * 1000); // 30 seconds
+    const intervalId = setInterval(fetchActiveTripData, ACTIVE_TRIP_UPDATE_INTERVAL);
 
     return () => {
       clearInterval(intervalId);
     };
-  }, [apiKey]);
+  }, []);
 
   useEffect(() => {
     const debounceSetSubscription = debounce((enabled: boolean) => {
       setLocationSubscriptionEnabled(enabled);
     }, 1000); // Debounce to 1 second
 
-    if (activeTrip && activeTrip.rideStatus !== 'Not active') {
+    if (activeTripId) {
       debounceSetSubscription(true);
     } else {
       debounceSetSubscription(false);
@@ -93,7 +96,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     return () => {
       debounceSetSubscription.cancel(); // Cancel debounce on cleanup
     };
-  }, [activeTrip]);
+  }, [activeTripId]);
 
   useSubscribe({
     onLocationUpdate: (location: TripLocation) => {
