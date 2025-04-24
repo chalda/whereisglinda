@@ -3,8 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
+	"whereisglinda-backend/logger"
 )
 
 func SubscribeLocation(w http.ResponseWriter, r *http.Request) {
@@ -15,7 +15,6 @@ func SubscribeLocation(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	// Handle OPTIONS request
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -23,7 +22,7 @@ func SubscribeLocation(w http.ResponseWriter, r *http.Request) {
 
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		log.Println("Error: Streaming unsupported")
+		logger.Log.Error().Msg("Streaming unsupported")
 		http.Error(w, "Streaming unsupported", http.StatusInternalServerError)
 		return
 	}
@@ -33,12 +32,12 @@ func SubscribeLocation(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case <-notify:
-			log.Println("Client disconnected from subscription")
+			logger.Log.Debug().Msg("Client disconnected from subscription")
 			return
 		case loc := <-locationChan:
 			data, err := json.Marshal(loc)
 			if err != nil {
-				log.Printf("Error marshaling location data: %v", err)
+				logger.Log.Error().Err(err).Msg("Error marshaling location data")
 				fmt.Fprintf(w, "event: error\ndata: %s\n\n", err.Error())
 				flusher.Flush()
 				continue

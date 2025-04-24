@@ -27,7 +27,7 @@ func SetupRoutes() *mux.Router {
 	router.HandleFunc("/locations/subscribe", handlers.SubscribeLocation).Methods("OPTIONS", "GET")                               // Subscribe to real-time location updates
 
 	// Trip Endpoints
-	router.HandleFunc("/trip", handlers.CreateNewTrip).Methods("POST")       // Create a new trip
+	router.HandleFunc("/trip", handlers.StartNewTrip).Methods("POST")        // Create a new trip
 	router.HandleFunc("/trip/end", handlers.EndTrip).Methods("POST")         // End a trip
 	router.HandleFunc("/trip/active", handlers.GetActiveTrip).Methods("GET") // Fetch active trip
 

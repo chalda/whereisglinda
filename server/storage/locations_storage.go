@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"log"
+	"whereisglinda-backend/logger"
 	"whereisglinda-backend/models"
 )
 
@@ -12,37 +12,39 @@ func SaveTripLocation(location models.TripLocation) error {
 		location.TripID, location.Latitude, location.Longitude,
 	)
 	if err != nil {
-		log.Printf("Error saving location to database: %v", err)
+		logger.Log.Error().Err(err).Interface("location", location).Msg("Error saving location to database")
 		return err
 	}
-	log.Printf("Location saved to database: %+v", location)
+	logger.Log.Debug().Interface("location", location).Msg("Location saved to database")
 	return nil
 }
 
+// GetLocationsForTrip retrieves all locations for a specific trip
 func GetLocationsForTrip(tripID int) ([]models.TripLocation, error) {
 	rows, err := DB.Query("SELECT id, trip_id, latitude, longitude, timestamp FROM locations WHERE trip_id = ? ORDER BY id", tripID)
 	if err != nil {
-		log.Printf("Error querying locations for tripID %d: %v", tripID, err)
+		logger.Log.Error().Err(err).Int("tripID", tripID).Msg("Error querying locations for trip")
 		return nil, err
 	}
 	defer rows.Close()
 
-	locations := make([]models.TripLocation, 0)
+	var locations []models.TripLocation
 	for rows.Next() {
 		var location models.TripLocation
 		err := rows.Scan(&location.ID, &location.TripID, &location.Latitude, &location.Longitude, &location.Timestamp)
 		if err != nil {
-			log.Printf("Error scanning location row: %v", err)
+			logger.Log.Error().Err(err).Msg("Error scanning location row")
 			return nil, err
 		}
 		locations = append(locations, location)
 	}
+
 	if err := rows.Err(); err != nil {
-		log.Printf("Error iterating over location rows: %v", err)
+		logger.Log.Error().Err(err).Int("tripID", tripID).Msg("Error iterating over location rows")
 		return nil, err
 	}
 
-	log.Printf("Retrieved %d locations for tripID %d", len(locations), tripID)
+	logger.Log.Debug().Int("tripID", tripID).Int("count", len(locations)).Msg("Locations retrieved successfully")
 	return locations, nil
 }
 

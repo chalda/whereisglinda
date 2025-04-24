@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"whereisglinda-backend/logger"
 	"whereisglinda-backend/routes"
 	"whereisglinda-backend/storage"
 
@@ -16,6 +17,8 @@ var (
 )
 
 func main() {
+	logger.InitLogger()
+
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
