@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -22,6 +23,7 @@ func SubscribeLocation(w http.ResponseWriter, r *http.Request) {
 
 	flusher, ok := w.(http.Flusher)
 	if !ok {
+		log.Println("Error: Streaming unsupported")
 		http.Error(w, "Streaming unsupported", http.StatusInternalServerError)
 		return
 	}
@@ -31,10 +33,12 @@ func SubscribeLocation(w http.ResponseWriter, r *http.Request) {
 	for {
 		select {
 		case <-notify:
+			log.Println("Client disconnected from subscription")
 			return
 		case loc := <-locationChan:
 			data, err := json.Marshal(loc)
 			if err != nil {
+				log.Printf("Error marshaling location data: %v", err)
 				fmt.Fprintf(w, "event: error\ndata: %s\n\n", err.Error())
 				flusher.Flush()
 				continue

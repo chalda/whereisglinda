@@ -11,11 +11,11 @@ import (
 
 func GetActiveTripWithLatestLocation(db *sql.DB) (*models.TripWithLocation, error) {
 	query := `
-	SELECT t.id, t.active, t.ride_status, t.start_time, t.end_time,
+	SELECT t.trip_id, t.active, t.ride_status, t.start_time, t.end_time,
 	       l.in_geofence, l.timestamp
 	FROM trips t
 	LEFT JOIN locations l ON l.id = (
-		SELECT MAX(id) FROM locations WHERE trip_id = t.id
+		SELECT MAX(id) FROM locations WHERE trip_id = t.trip_id
 	)
 	WHERE t.active = 1
 	LIMIT 1;
@@ -27,9 +27,13 @@ func GetActiveTripWithLatestLocation(db *sql.DB) (*models.TripWithLocation, erro
 		&trip.StartTime, &trip.EndTime,
 		&trip.InGeofence, &trip.Timestamp,
 	)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
+    if err == sql.ErrNoRows {
+        return nil, nil
+    }
+    if err != nil {
+        log.Printf("Error fetching active trip with latest location: %v", err)
+        return nil, err
+    }
 	return &trip, err
 }
 

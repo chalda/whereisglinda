@@ -42,8 +42,11 @@ func StartServer() {
 
 	// Wrap the router with middleware
 	loggedRouter := muxHandlers.LoggingHandler(os.Stdout, router) // Log all requests to stdout
-	recoveryRouter := muxHandlers.RecoveryHandler()(loggedRouter) // Recover from panics
-	corsRouter := muxHandlers.CORS(                               // Handle OPTIONS requests and CORS
+	recoveryRouter := muxHandlers.RecoveryHandler(
+		muxHandlers.PrintRecoveryStack(true),
+		muxHandlers.RecoveryLogger(log.New(os.Stderr, "PANIC: ", log.LstdFlags)),
+	)(loggedRouter) // Recover from panics
+	corsRouter := muxHandlers.CORS( // Handle OPTIONS requests and CORS
 		muxHandlers.AllowedOrigins([]string{"*"}),
 		muxHandlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
 		muxHandlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
