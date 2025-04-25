@@ -28,9 +28,9 @@ func SetupRoutes() *mux.Router {
 	router.HandleFunc("/locations/subscribe", handlers.SubscribeLocation).Methods("OPTIONS", "GET")                               // Subscribe to real-time location updates
 
 	// Trip Endpoints
-	router.HandleFunc("/trip", handlers.StartNewTrip).Methods("POST")        // Create a new trip
+	router.HandleFunc("/trip", handlers.StartNewTrip).Methods("POST") // Create a new trip
 	// @TODO replace /end with update active=0 /trip/{id}/
-	router.HandleFunc("/trip/{tripID}", handlers.UpdateTrip).Methods("PUT") // End a trip by ID
+	router.HandleFunc("/trip/{tripID}", handlers.UpdateTrip).Methods("PUT")  // End a trip by ID
 	router.HandleFunc("/trip/end", handlers.EndTrip).Methods("POST")         // End a trip
 	router.HandleFunc("/trip/active", handlers.GetActiveTrip).Methods("GET") // Fetch active trip
 
@@ -47,6 +47,35 @@ func (z zerologRecoveryLogger) Println(args ...interface{}) {
 	logger.Log.Error().Msgf("PANIC: %v", args)
 }
 
+func securityHeadersMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'")
+		w.Header().Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
+		next.ServeHTTP(w, r)
+	})
+}
+
+// Handle OPTIONS requests and CORS
+func corsHeadersMiddleware(next http.Handler) http.Handler {
+	if os.Getenv("ENV") == "development" {
+		return muxHandlers.CORS(
+			muxHandlers.AllowedOrigins([]string{"*"}),
+			muxHandlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
+			muxHandlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+		)(next)
+	} else {
+		return muxHandlers.CORS( // Handle OPTIONS requests and CORS
+			muxHandlers.AllowedOrigins([]string{os.Getenv("DOMAIN")}),
+			muxHandlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
+			muxHandlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
+		)(next)
+	}
+}
+
 // StartServer starts the HTTP server with logging, recovery, CORS, and graceful shutdown.
 func StartServer() {
 	router := SetupRoutes()
@@ -59,15 +88,14 @@ func StartServer() {
 		muxHandlers.PrintRecoveryStack(true),
 		muxHandlers.RecoveryLogger(zerologRecoveryLogger{}),
 	)(loggedRouter) // Recover from panics
-	corsRouter := muxHandlers.CORS( // Handle OPTIONS requests and CORS
-		muxHandlers.AllowedOrigins([]string{"*"}),
-		muxHandlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
-		muxHandlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-	)(recoveryRouter)
+	corsRouter := corsHeadersMiddleware(recoveryRouter)
+
+	// Add security headers middleware
+	secureRouter := securityHeadersMiddleware(corsRouter)
 
 	server := &http.Server{
 		Addr:         ":8080",
-		Handler:      corsRouter,
+		Handler:      secureRouter,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  90 * time.Second,
