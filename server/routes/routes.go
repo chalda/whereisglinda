@@ -2,6 +2,7 @@ package routes
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -25,7 +26,7 @@ func SetupRoutes() *mux.Router {
 	// Location Endpoints
 	router.HandleFunc("/locations", handlers.Authorize([]string{"driver", "bus", "admin"}, handlers.AddLocation)).Methods("POST") // Add location
 	router.HandleFunc("/locations", handlers.GetLatestTripLocations).Methods("GET")                                               // Get latest trip locations
-	router.HandleFunc("/locations/subscribe", handlers.SubscribeLocation).Methods("OPTIONS", "GET")                               // Subscribe to real-time location updates
+	router.HandleFunc("/locations/subscribe", handlers.SubscribeLocation).Methods("GET")                                          // Subscribe to real-time location updates
 
 	// Trip Endpoints
 	router.HandleFunc("/trip", handlers.StartNewTrip).Methods("POST") // Create a new trip
@@ -49,10 +50,10 @@ func (z zerologRecoveryLogger) Println(args ...interface{}) {
 
 func securityHeadersMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+		//	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
-		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		//	w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 		w.Header().Set("Content-Security-Policy", "default-src 'self'")
 		w.Header().Set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload")
 		next.ServeHTTP(w, r)
@@ -61,19 +62,24 @@ func securityHeadersMiddleware(next http.Handler) http.Handler {
 
 // Handle OPTIONS requests and CORS
 func corsHeadersMiddleware(next http.Handler) http.Handler {
-	if os.Getenv("ENV") == "development" {
-		return muxHandlers.CORS(
-			muxHandlers.AllowedOrigins([]string{"*"}),
-			muxHandlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
-			muxHandlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-		)(next)
-	} else {
-		return muxHandlers.CORS( // Handle OPTIONS requests and CORS
-			muxHandlers.AllowedOrigins([]string{os.Getenv("DOMAIN")}),
-			muxHandlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
-			muxHandlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-		)(next)
-	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("CORS middleware: Origin=%s, Method=%s\n", r.Header.Get("Origin"), r.Method)
+		if os.Getenv("ENV") == "development" {
+			muxHandlers.CORS(
+				muxHandlers.AllowedOrigins([]string{"*"}),
+				muxHandlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
+				muxHandlers.AllowedHeaders([]string{"Content-Type", "Authorization", "Accept", "Origin"}),
+				muxHandlers.ExposedHeaders([]string{"Content-Length"}),
+			)(next).ServeHTTP(w, r)
+		} else {
+			muxHandlers.CORS(
+				muxHandlers.AllowedOrigins([]string{os.Getenv("DOMAIN")}),
+				muxHandlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
+				muxHandlers.AllowedHeaders([]string{"Content-Type", "Authorization", "Accept", "Origin"}),
+				muxHandlers.ExposedHeaders([]string{"Content-Length"}),
+			)(next).ServeHTTP(w, r)
+		}
+	})
 }
 
 // StartServer starts the HTTP server with logging, recovery, CORS, and graceful shutdown.
@@ -88,14 +94,14 @@ func StartServer() {
 		muxHandlers.PrintRecoveryStack(true),
 		muxHandlers.RecoveryLogger(zerologRecoveryLogger{}),
 	)(loggedRouter) // Recover from panics
-	corsRouter := corsHeadersMiddleware(recoveryRouter)
 
 	// Add security headers middleware
-	secureRouter := securityHeadersMiddleware(corsRouter)
+	secureRouter := securityHeadersMiddleware(recoveryRouter)
+	corsRouter := corsHeadersMiddleware(secureRouter)
 
 	server := &http.Server{
 		Addr:         ":8080",
-		Handler:      secureRouter,
+		Handler:      corsRouter,
 		ReadTimeout:  30 * time.Second,
 		WriteTimeout: 30 * time.Second,
 		IdleTimeout:  90 * time.Second,

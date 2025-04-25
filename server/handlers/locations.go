@@ -31,6 +31,9 @@ func AddLocation(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "latitude and longitude are required", http.StatusBadRequest)
 		return
 	}
+	if len(storage.HOME_GEOFENCE) > 0 {
+		location.InGeofence = storage.PointInPolygon(location.Location, storage.HOME_GEOFENCE)
+	}
 
 	// Save location to the database
 	if err := storage.SaveTripLocation(location); err != nil {
@@ -39,14 +42,21 @@ func AddLocation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Push location to the in-memory channel
-	select {
-	case locationChan <- location:
-		logger.Log.Debug().Interface("location", location).Msg("Location pushed to channel")
-	default:
-		logger.Log.Error().Msg("Location channel is full, dropping location")
-	}
-
 	logger.Log.Debug().Interface("location", location).Msg("Location added successfully")
 	w.WriteHeader(http.StatusCreated)
+
+	if !location.InGeofence {
+		select {
+		case locationChan <- location:
+			logger.Log.Debug().Interface("location", location).Msg("Location pushed to channel")
+		default:
+			logger.Log.Error().Msg("Location channel is full, dropping location")
+		}
+	}
 }
+
+
+
+
+
+

@@ -7,49 +7,6 @@
     },
     "item": [
         {
-            "name": "Add Location",
-            "request": {
-                "method": "POST",
-                "header": [
-                    {
-                        "key": "Authorization",
-                        "value": "bus-key"
-                    },
-                    {
-                        "key": "Content-Type",
-                        "value": "application/json"
-                    }
-                ],
-                "body": {
-                    "mode": "raw",
-                    "raw": "{\n  \"latitude\": 37.7749,\n  \"longitude\": -122.4194,\n  \"tripID\": 42\n}"
-                },
-                "url": {
-                    "raw": "http://localhost:8080/locations",
-                    "protocol": "http",
-                    "host": ["localhost"],
-                    "port": "8080",
-                    "path": ["locations"]
-                }
-            },
-            "response": []
-        },
-        {
-            "name": "Subscribe to Location Updates",
-            "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                    "raw": "http://localhost:8080/locations/subscribe",
-                    "protocol": "http",
-                    "host": ["localhost"],
-                    "port": "8080",
-                    "path": ["locations", "subscribe"]
-                }
-            },
-            "response": []
-        },
-        {
             "name": "Get Latest Geofence",
             "request": {
                 "method": "GET",
@@ -104,16 +61,59 @@
             "response": []
         },
         {
-            "name": "Get Active Trip",
+            "name": "Add Location",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "bus-key"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"latitude\": 37.7749,\n  \"longitude\": -122.4194,\n  \"tripID\": 42\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:8080/locations",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["locations"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Latest Trip Locations",
             "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                    "raw": "http://localhost:8080/trip/active",
+                    "raw": "http://localhost:8080/locations",
                     "protocol": "http",
                     "host": ["localhost"],
                     "port": "8080",
-                    "path": ["trip", "active"]
+                    "path": ["locations"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Subscribe to Location Updates",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:8080/locations/subscribe",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["locations", "subscribe"]
                 }
             },
             "response": []
@@ -134,6 +134,30 @@
             "response": []
         },
         {
+            "name": "Update Trip",
+            "request": {
+                "method": "PUT",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"tripId\": 42,\n  \"rideStatus\": \"Riding\"\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:8080/trip/42",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["trip", "42"]
+                }
+            },
+            "response": []
+        },
+        {
             "name": "End Trip",
             "request": {
                 "method": "POST",
@@ -144,6 +168,21 @@
                     "host": ["localhost"],
                     "port": "8080",
                     "path": ["trip", "end"]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Get Active Trip",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "http://localhost:8080/trip/active",
+                    "protocol": "http",
+                    "host": ["localhost"],
+                    "port": "8080",
+                    "path": ["trip", "active"]
                 }
             },
             "response": []

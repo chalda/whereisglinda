@@ -142,6 +142,7 @@ func GetActiveTrip(w http.ResponseWriter, r *http.Request) {
 
 	if trip == nil {
 		logger.Log.Debug().Msg("No active trip found")
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(map[string]string{"message": "No active trip found"})
 		return
@@ -169,6 +170,7 @@ func GetActiveTrip(w http.ResponseWriter, r *http.Request) {
 
 	logger.Log.Debug().Interface("trip", resp).Msg("Active trip retrieved")
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
 }
 

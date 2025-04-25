@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"time"
 	"whereisglinda-backend/logger"
+	"whereisglinda-backend/models"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -25,7 +26,15 @@ func InitDB() {
 
 	// populate dummy data
 	//@TODO: remove this in production
-	PopulateDummyData()
+	//PopulateDummyData()
+
+	anotherGeofence := []models.Location{
+		{Latitude: 40.7000, Longitude: -73.9300},
+		{Latitude: 40.7020, Longitude: -73.9250},
+		{Latitude: 40.7040, Longitude: -73.9280},
+		{Latitude: 40.7060, Longitude: -73.9320},
+	}
+	SaveGeofence(anotherGeofence)
 
 	HOME_GEOFENCE, err = GetLatestGeofence()
 	if err != nil {
@@ -44,7 +53,7 @@ func InitDB() {
 		}
 	}()
 
-	go MonitorTripInactivity()
+	//go MonitorTripInactivity()
 }
 
 func createTables() {
