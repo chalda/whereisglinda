@@ -6,8 +6,7 @@ import { validateApiKey } from '../utils/api';
 import AppControls from '../components/AppControls';
 
 const DriverLogin = () => {
-  const { activeTripId, activeTrip, apiKey, userRole, setApiKey, setUserRole } =
-    useContext(AppContext);
+  const { userRole, setApiKey, setUserRole } = useContext(AppContext);
   const [inputApiKey, setInputApiKey] = useState<string>('');
   const [error, setError] = useState<string>('');
 

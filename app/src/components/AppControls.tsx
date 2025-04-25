@@ -1,39 +1,24 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
+import { View, Text, Button, StyleSheet, TextInput } from 'react-native';
 
-import LocationTracker from './LocationTracker';
 import { AppContext } from '../AppContext';
 import { createNewTrip, updateTrip, endTrip, fetchActiveTrip } from '../utils/api';
 
 const AppControls = () => {
-  const { apiKey, userRole, activeTrip, activeTripId, setActiveTrip, geofence } =
+  const { apiKey, userRole, activeTrip, setActiveTrip, geofence, setLocationTrackingEnabled } =
     useContext(AppContext);
   const [loading, setLoading] = useState<boolean>(false);
-  const [trackingEnabled, setTrackingEnabled] = useState<boolean>(false);
 
   const canEditAppStatus = userRole === 'admin' || userRole === 'driver';
   const canCreateNewTrip = userRole === 'admin' || userRole === 'driver' || userRole === 'bus';
-
-  const refetchActiveTrip = async () => {
-    try {
-      const trip = await fetchActiveTrip(apiKey);
-      setActiveTrip(trip);
-
-      // Disable tracking if the trip is no longer active
-      if (!trip || trip.rideStatus === 'Not active') {
-        setTrackingEnabled(false);
-      }
-    } catch (err) {
-      console.error('Failed to refetch active trip:', err.message);
-    }
-  };
 
   const handleCreateNewTrip = async () => {
     try {
       setLoading(true);
       await createNewTrip(apiKey);
-      await refetchActiveTrip();
-      setTrackingEnabled(true); // Enable tracking when a new trip is started
+      const trip = await fetchActiveTrip(apiKey);
+      setActiveTrip(trip);
+      setLocationTrackingEnabled(!!trip?.tripId);
     } catch (err) {
       console.error('Failed to create new trip:', err.message);
     } finally {
@@ -45,8 +30,9 @@ const AppControls = () => {
     try {
       setLoading(true);
       await endTrip(apiKey);
-      await refetchActiveTrip();
-      setTrackingEnabled(false); // Disable tracking when the trip ends
+      const trip = await fetchActiveTrip(apiKey);
+      setActiveTrip(trip);
+      setLocationTrackingEnabled(!!trip?.tripId);
     } catch (err) {
       console.error('Failed to end trip:', err.message);
     } finally {
@@ -54,28 +40,28 @@ const AppControls = () => {
     }
   };
 
-  const handleUpdateRideStatus = async (newRideStatus: string) => {
-    if (!activeTrip) {
-      console.error('No active trip to update ride status.');
-      return;
-    }
+  // const handleUpdateRideStatus = async (newRideStatus: string) => {
+  //   if (!activeTrip) {
+  //     console.error('No active trip to update ride status.');
+  //     return;
+  //   }
 
-    try {
-      setLoading(true);
-      await updateTrip(apiKey, activeTripId!, { rideStatus: newRideStatus });
-      setActiveTrip({ ...activeTrip, rideStatus: newRideStatus });
-    } catch (err) {
-      console.error('Failed to update ride status:', err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //   try {
+  //     setLoading(true);
+  //     await updateTrip(apiKey, activeTripId!, { rideStatus: newRideStatus });
+  //     setActiveTrip({ ...activeTrip, rideStatus: newRideStatus });
+  //   } catch (err) {
+  //     console.error('Failed to update ride status:', err.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <View style={styles.container}>
       {activeTrip ? (
         <View style={styles.row}>
-          <Text style={styles.label}>Trip Number: {activeTripId}</Text>
+          <Text style={styles.label}>Trip Number: {activeTrip?.tripId}</Text>
           <Button title="End Trip" onPress={handleEndTrip} disabled={loading} />
         </View>
       ) : (
@@ -95,13 +81,6 @@ const AppControls = () => {
       ) : (
         <Text style={styles.text}>Loading geofence...</Text>
       )}
-
-      <LocationTracker
-        apiKey={apiKey}
-        trackingEnabled={trackingEnabled}
-        activeTripId={activeTripId}
-        onTrackingDisabled={() => setTrackingEnabled(false)}
-      />
     </View>
   );
 };

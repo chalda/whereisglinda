@@ -29,9 +29,9 @@ const seaMonster = Asset.fromModule(require('../assets/octopus_icon.png'));
 //const bus = Image.resolveAssetSource(glinda_icon_source);
 
 type MapContentProps = {
-  locations: Location[];
-  latestLocation?: Location | null;
-  geofence?: Location[] | null; // Ensure geofence is typed as an array of Location
+  locations: Location[] | undefined;
+  latestLocation?: Location | undefined;
+  geofence?: Location[] | undefined; // Ensure geofence is typed as an array of Location
 };
 
 const googleMapsApiKey = Constants?.expoConfig?.extra?.googleMapsApiKey;
@@ -43,7 +43,7 @@ const BROOKLYN_REGION: Region = {
   longitudeDelta: 0.05,
 };
 
-const RECENTER_TIMEOUT_MS = 10000;
+const RECENTER_TIMEOUT_MS = 20000;
 
 const pirateMapStyle = [
   { elementType: 'geometry', stylers: [{ color: '#e0d8b0' }] },
@@ -81,7 +81,7 @@ const pirateMapStyle = [
   },
 ];
 
-const MapContent: React.FC<MapContentProps> = ({ locations, geofence, latestLocation }) => {
+const MapContent: React.FC<MapContentProps> = ({ locations = [], geofence, latestLocation }) => {
   const mapRef = useRef<MapView>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [isUserInteracting, setIsUserInteracting] = useState(false);
@@ -96,14 +96,23 @@ const MapContent: React.FC<MapContentProps> = ({ locations, geofence, latestLoca
     mapRef.current?.animateToRegion(region, 1000);
   };
 
+  //initial center
   useEffect(() => {
-    if (!latestLocation) {
-      mapRef.current?.animateToRegion(BROOKLYN_REGION, 1000);
+    if (latestLocation) {
+      centerMap(latestLocation);
       return;
     }
+    if (locations?.length > 0) {
+      centerMap(locations[locations.length - 1]);
+      return;
+    }
+    mapRef.current?.animateToRegion(BROOKLYN_REGION, 1000);
+  }, []);
 
-    if (!isUserInteracting) {
+  useEffect(() => {
+    if (!isUserInteracting && latestLocation) {
       centerMap(latestLocation);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     }
   }, [latestLocation, isUserInteracting]);
 
@@ -119,6 +128,43 @@ const MapContent: React.FC<MapContentProps> = ({ locations, geofence, latestLoca
     scheduleRecenter();
   };
 
+  const placeBusMarker = () => {
+    if (latestLocation) {
+      return (
+        <Marker
+          coordinate={{
+            latitude: latestLocation.latitude,
+            longitude: latestLocation.longitude,
+          }}
+          anchor={{ x: 0.5, y: 0.5 }}
+          image={bus.uri}
+          title="Last Known Location">
+          <Callout>
+            <Text>Glinda</Text>
+          </Callout>
+        </Marker>
+      );
+    } else if (locations?.length > 0) {
+      const ll = locations[locations.length - 1];
+      return (
+        <Marker
+          coordinate={{
+            latitude: ll.latitude,
+            longitude: ll.longitude,
+          }}
+          anchor={{ x: 0.5, y: 0.5 }}
+          image={bus.uri}
+          title="Last Known Location">
+          <Callout>
+            <Text>Glinda</Text>
+          </Callout>
+        </Marker>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <View style={styles.container}>
       <MapView
@@ -130,7 +176,7 @@ const MapContent: React.FC<MapContentProps> = ({ locations, geofence, latestLoca
         customMapStyle={pirateMapStyle}
         {...(Platform.OS === 'web' && { googleMapsApiKey })}>
         {/* Path */}
-        {locations.length > 1 && (
+        {locations?.length > 1 && (
           <Polyline
             coordinates={locations.map((loc) => ({
               latitude: loc.latitude,
@@ -143,16 +189,7 @@ const MapContent: React.FC<MapContentProps> = ({ locations, geofence, latestLoca
         )}
 
         {/* Marker for last known location */}
-        {latestLocation && (
-          <Marker
-            coordinate={{
-              latitude: latestLocation.latitude,
-              longitude: latestLocation.longitude,
-            }}
-            anchor={{ x: 0.5, y: 0.5 }}
-            image={bus.uri}
-            title="Last Known Location"></Marker>
-        )}
+        {placeBusMarker()}
 
         {/* Geofence Polygon */}
         {geofence && <MysteryZone bounds={geofence} image={seaMonster} />}

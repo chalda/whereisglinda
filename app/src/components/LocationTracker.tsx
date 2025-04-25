@@ -8,7 +8,7 @@ import { TripLocation } from '../types';
 type LocationTrackerProps = {
   apiKey: string;
   trackingEnabled: boolean;
-  activeTripId: number | null;
+  activeTripId: number | null | undefined;
   onTrackingDisabled?: () => void;
 };
 

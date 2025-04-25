@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
 import { useEffect, useRef } from 'react';
-import EventSource from 'react-native-sse';
+import { Platform } from 'react-native';
+import EventSourcePolyfill from 'react-native-sse';
 
 import { TripLocation } from '../types';
 
@@ -16,7 +17,12 @@ const useSubscribe = ({ onLocationUpdate, enabled }: UseSubscribeProps) => {
 
   useEffect(() => {
     if (enabled && !eventSourceRef.current) {
-      const es = new EventSource(`${backendUrl}/locations/subscribe`);
+      const EventSourceImpl =
+        typeof window !== 'undefined' && 'EventSource' in window
+          ? window.EventSource
+          : EventSourcePolyfill;
+
+      const es = new EventSourceImpl(`${backendUrl}/locations/subscribe`);
       eventSourceRef.current = es;
 
       es.addEventListener('open', () => {
@@ -41,12 +47,13 @@ const useSubscribe = ({ onLocationUpdate, enabled }: UseSubscribeProps) => {
         console.log('Close SSE connection.');
       });
 
-      es.open();
+      if (es.open) es.open();
     }
 
     return () => {
       if (eventSourceRef.current) {
-        eventSourceRef.current.removeAllEventListeners();
+        if (eventSourceRef.current.removeAllEventListeners)
+          eventSourceRef.current.removeAllEventListeners();
         eventSourceRef.current.close();
         eventSourceRef.current = null;
         console.log('Cleaned up SSE connection.');

@@ -112,7 +112,7 @@ export const updateTrip = async (
   updates: { rideStatus?: string }
 ): Promise<void> => {
   return apiFetch<void>(`/trip/${tripId}`, apiKey, {
-    method: 'PATCH',
+    method: 'PUT',
     body: JSON.stringify(updates),
   });
 };

@@ -4,6 +4,7 @@ import debounce from 'lodash.debounce';
 import { Trip, Location, UserRole, TripLocation } from './types';
 import { fetchLocations, fetchActiveTrip, fetchGeofence } from './utils/api';
 import useSubscribe from './utils/useSubscribe';
+import LocationTracker from './components/LocationTracker';
 
 const LOCATIONS_UPDATE_INTERVAL = 60 * 1000; // 30 seconds
 const ACTIVE_TRIP_UPDATE_INTERVAL = 30 * 1000; // 30 seconds
@@ -15,7 +16,6 @@ export interface AppContextProps {
   setUserRole: (role: UserRole) => void;
   activeTrip: Trip | null;
   setActiveTrip: (trip: Trip | null) => void;
-  activeTripId: number | null;
   locations: Location[];
   setLocations: (locations: Location[]) => void;
   geofence: Location[] | null;
@@ -23,6 +23,8 @@ export interface AppContextProps {
   latestLocation: TripLocation | null;
   setLatestLocation: (location: TripLocation | null) => void;
   locationSubscriptionEnabled: boolean;
+  locationTrackingEnabled: boolean;
+  setLocationTrackingEnabled: (enabled: boolean) => void;
 }
 
 export const AppContext = createContext<AppContextProps>({} as AppContextProps);
@@ -35,11 +37,12 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [apiKey, setApiKey] = useState<string>('');
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [activeTrip, setActiveTrip] = useState<Trip | null>(null);
-  const [activeTripId, setActiveTripId] = useState<number | null>(null);
+
   const [locations, setLocations] = useState<Location[]>([]);
   const [geofence, setGeofence] = useState<Location[] | null>(null);
   const [latestLocation, setLatestLocation] = useState<TripLocation | null>(null);
   const [locationSubscriptionEnabled, setLocationSubscriptionEnabled] = useState(false);
+  const [locationTrackingEnabled, setLocationTrackingEnabled] = useState(false);
 
   useEffect(() => {
     const fetchGeofenceData = async () => {
@@ -59,9 +62,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       try {
         const trip = await fetchActiveTrip(apiKey);
         setActiveTrip(trip);
-
-        // Update activeTripId whenever activeTrip changes
-        setActiveTripId(trip?.tripId || null);
 
         // Fetch locations if there is an active trip
         if (trip) {
@@ -87,7 +87,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       setLocationSubscriptionEnabled(enabled);
     }, 1000); // Debounce to 1 second
 
-    if (activeTripId) {
+    if (activeTrip?.tripId) {
       debounceSetSubscription(true);
     } else {
       debounceSetSubscription(false);
@@ -96,7 +96,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     return () => {
       debounceSetSubscription.cancel(); // Cancel debounce on cleanup
     };
-  }, [activeTripId]);
+  }, [activeTrip]);
 
   useSubscribe({
     onLocationUpdate: (location: TripLocation) => {
@@ -107,24 +107,33 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   });
 
   return (
-    <AppContext.Provider
-      value={{
-        apiKey,
-        setApiKey,
-        userRole,
-        setUserRole,
-        activeTrip,
-        setActiveTrip,
-        activeTripId,
-        locations,
-        setLocations,
-        geofence,
-        setGeofence,
-        latestLocation,
-        setLatestLocation,
-        locationSubscriptionEnabled,
-      }}>
-      {children}
-    </AppContext.Provider>
+    <>
+      <AppContext.Provider
+        value={{
+          apiKey,
+          setApiKey,
+          userRole,
+          setUserRole,
+          activeTrip,
+          setActiveTrip,
+          locations,
+          setLocations,
+          geofence,
+          setGeofence,
+          latestLocation,
+          setLatestLocation,
+          locationSubscriptionEnabled,
+          locationTrackingEnabled,
+          setLocationTrackingEnabled,
+        }}>
+        {children}
+      </AppContext.Provider>
+      <LocationTracker
+        apiKey={apiKey}
+        trackingEnabled={locationTrackingEnabled}
+        activeTripId={activeTrip?.tripId}
+        onTrackingDisabled={() => setLocationTrackingEnabled(false)}
+      />
+    </>
   );
 };

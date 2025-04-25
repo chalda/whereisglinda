@@ -1,4 +1,5 @@
-import React, { useRef, useContext } from 'react';
+// app/src/navigation/Header.tsx
+import React, { useRef, useContext, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,18 +8,19 @@ import {
   Image,
   Dimensions,
   StyleSheet,
+  Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { AppContext } from '../AppContext';
 import { getTimeAgo } from '../utils/getTimeAgo';
 
-// import { Asset } from 'expo-asset';
-// const city_parallax = Asset.fromModule(require('../assets/cartoon_city.png'));
+const { width: SW, height: SH } = Dimensions.get('window');
 
-const { width: screenWidth } = Dimensions.get('window');
-const IS_SMALL_SCREEN = screenWidth < 480;
-const TIRE_SIZE = IS_SMALL_SCREEN ? screenWidth * 0.26 : screenWidth * 0.17;
-const CENTER = TIRE_SIZE / 2;
+// Responsive constraints
+const MAX_HEADER_WIDTH = 800;
+const YB_HEIGHT = Math.max(60, Math.min(SH * 0.12, 100)); // Yellow bar height
+const WHEEL = Math.max(50, Math.min(SW * 0.15, 100)); // Wheel diameter
+const BTN_FONT = Math.max(16, Math.min(SW * 0.04, 24)); // Button font-size
+const PAR_H = Math.max(120, Math.min(SH * 0.2, 240)); // Parallax height
 
 const BUTTONS = [
   { label: 'Hire', route: 'Hire' },
@@ -26,135 +28,83 @@ const BUTTONS = [
   { label: 'About', route: 'About' },
 ];
 
-const PARALLAX_CROP_HEIGHT = 260;
-const PARALLAX_TOP_OFFSET = 60;
-
 const Header = ({ navigation, state }) => {
   const { activeTrip } = useContext(AppContext);
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-  const parallaxAnim = useRef(new Animated.Value(0)).current;
-  const active = state.routeNames[state.index];
+  const spin = useRef(new Animated.Value(0)).current;
+  const activeRoute = state.routeNames[state.index];
 
-  const triggerSpin = () => {
-    rotateAnim.setValue(0);
-    Animated.parallel([
-      Animated.timing(rotateAnim, {
+  // Unified loop for both wheels & parallax
+  useEffect(() => {
+    Animated.loop(
+      Animated.timing(spin, {
         toValue: 1,
-        duration: 500,
+        duration: 4000,
         useNativeDriver: true,
-      }),
-      Animated.timing(parallaxAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-    ]).start(() => parallaxAnim.setValue(0));
-  };
+      })
+    ).start();
+  }, [spin]);
 
-  const spin = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+  // Trigger on route or trip change
+  useEffect(() => {
+    spin.setValue(0);
+  }, [activeRoute, activeTrip]);
 
-  const parallaxShift = parallaxAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -30],
-  });
+  // Interpolations
+  const rotation = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+  const translateX = spin.interpolate({ inputRange: [0, 1], outputRange: [0, -SW * 0.1] });
 
   return (
-    <View style={styles.headerContainer}>
-      {/* Top Yellow Band with Buttons */}
-      <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginButton}>
-          <Text style={styles.loginText}>Login</Text>
-        </TouchableOpacity>
-        <View style={styles.topButtonRow}>
-          {BUTTONS.map((btn) => {
-            const isActive = active === btn.label;
+    <View style={styles.container}>
+      {/* Parallax background */}
+      <Animated.Image
+        source={require('../assets/cartoon_city.png')}
+        style={[styles.parallaxBg, { transform: [{ translateX }] }]}
+        resizeMode="cover"
+      />
+
+      {/* Yellow bus band */}
+      <View style={styles.yellowBar}>
+        {/* Left Wheel */}
+        <Animated.View
+          style={[styles.wheel, styles.leftWheel, { transform: [{ rotate: rotation }] }]}
+        />
+
+        {/* Slice-angled buttons */}
+        <View style={styles.sliceRow}>
+          {BUTTONS.map((b) => {
+            const isActive = activeRoute === b.route;
             return (
               <TouchableOpacity
-                key={btn.label}
-                onPress={() => {
-                  navigation.navigate(btn.route);
-                  triggerSpin();
-                }}
-                style={[
-                  styles.sliceButton,
-                  isActive ? styles.sliceButtonActive : styles.sliceButtonNotActive,
-                ]}>
-                <Text
-                  style={[
-                    styles.buttonText,
-                    isActive && {
-                      color: '#fff',
-                      textShadowColor: '#fce38a',
-                      textShadowRadius: 8,
-                    },
-                  ]}>
-                  {btn.label}
+                key={b.route}
+                onPress={() => navigation.navigate(b.route)}
+                style={[styles.sliceBtn, isActive ? styles.sliceActive : styles.sliceInactive]}>
+                <Text style={[styles.sliceText, isActive && styles.sliceTextActive]}>
+                  {b.label}
                 </Text>
               </TouchableOpacity>
             );
           })}
         </View>
-      </View>
 
-      {/* Middle Band - City Panorama */}
-      <View style={styles.cityBand}>
+        {/* Login icon */}
+        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginBtn}>
+          <Text style={styles.loginIcon}>👤</Text>
+        </TouchableOpacity>
+
+        {/* Right Wheel */}
         <Animated.View
-          style={[
-            styles.parallaxBackground,
-            {
-              transform: [{ translateX: parallaxShift }],
-              // top: -PARALLAX_TOP_OFFSET,
-            },
-          ]}>
-          <Image
-            source={require('../assets/cartoon_city.png')}
-            style={styles.cityImage}
-            resizeMode="cover"
-          />
-        </Animated.View>
+          style={[styles.wheel, styles.rightWheel, { transform: [{ rotate: rotation }] }]}
+        />
       </View>
 
-      {/* Tire Overlaid */}
-      <Animated.View
-        style={[
-          styles.tireContainer,
-          {
-            width: TIRE_SIZE * 1.1,
-            height: TIRE_SIZE * 1.1,
-            borderRadius: (TIRE_SIZE * 1.1) / 2,
-            transform: [{ rotate: spin }],
-          },
-        ]}>
-        <LinearGradient
-          colors={['#333', '#000']}
-          style={[StyleSheet.absoluteFill, { borderRadius: (TIRE_SIZE * 1.1) / 2 }]}
-          start={{ x: 0.3, y: 0.3 }}
-          end={{ x: 0.7, y: 0.7 }}
-        />
-        <Image
-          source={require('../assets/where_is_glinda_text.png')}
-          style={{ width: CENTER * 1.2, height: CENTER * 1.2, borderRadius: (CENTER * 1.2) / 2 }}
-          resizeMode="cover"
-        />
-      </Animated.View>
-
-      {/* Bottom Pavement Band */}
-      <View style={styles.bottomBand}>
-        <View style={{ position: 'absolute', left: 20 }}>
-          <Text style={[styles.infoText, { fontSize: 14 }]}>Bus Status:</Text>
-          <Text style={[styles.infoText, { fontSize: 14 }]}>{activeTrip?.rideStatus || 'N/A'}</Text>
-        </View>
-        <View style={{ position: 'absolute', right: '50%' }}>
+      {/* Grey pavement band */}
+      <View style={styles.greyBand}>
+        <View style={styles.statusBox}>
+          <Text style={styles.statusText}>Bus Status: {activeTrip?.rideStatus || 'N/A'}</Text>
           {activeTrip?.lastUpdate && (
-            <Text style={[styles.infoText, { fontSize: 14 }]}>
-              Last seen: {getTimeAgo(activeTrip.lastUpdate)}
-            </Text>
+            <Text style={styles.statusText}>Last seen: {getTimeAgo(activeTrip.lastUpdate)}</Text>
           )}
         </View>
-        <Text style={styles.infoText}>Where will Glinda appear next?</Text>
       </View>
     </View>
   );
@@ -163,113 +113,111 @@ const Header = ({ navigation, state }) => {
 export default Header;
 
 const styles = StyleSheet.create({
-  headerContainer: {
+  container: {
     width: '100%',
     alignItems: 'center',
-    backgroundColor: '#ccc',
   },
-  topBar: {
-    backgroundColor: '#FFD800',
-    width: '100%',
-    paddingTop: 6,
-    paddingBottom: 14,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-    position: 'relative',
-    zIndex: 3,
-  },
-  loginButton: {
+
+  // Parallax: full width, sits at bottom of headerContainer behind bars
+  parallaxBg: {
     position: 'absolute',
-    top: 8,
-    right: 12,
-    padding: 6,
-  },
-  loginText: {
-    color: '#333',
-    fontSize: 14,
-    opacity: 0.6,
-  },
-  topButtonRow: {
-    flexDirection: 'row',
-    marginTop: 6,
-    justifyContent: 'center',
-  },
-  cityBand: {
-    backgroundColor: '#a0c4ff',
-    width: '100%',
-    height: TIRE_SIZE * 0.14,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
-    position: 'relative',
-    zIndex: 1,
-  },
-  parallaxBackground: {
-    position: 'absolute',
+    top: 0,
     left: 0,
-    height: PARALLAX_CROP_HEIGHT,
-    width: '200%',
-  },
-  cityImage: {
-    height: '100%',
     width: '100%',
+    height: YB_HEIGHT + PAR_H + 40, // total header height
+    zIndex: 0,
   },
-  bottomBand: {
-    backgroundColor: '#777',
-    width: '100%',
-    paddingVertical: 10,
+
+  // Yellow bar holds wheels + nav
+  yellowBar: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
+    maxWidth: MAX_HEADER_WIDTH,
+    height: YB_HEIGHT,
+    backgroundColor: '#FFD800',
     zIndex: 1,
-    marginTop: TIRE_SIZE * 0.15,
   },
-  tireContainer: {
+
+  // Wheels: 80% above bar, 20% overlay
+  wheel: {
     position: 'absolute',
-    top: TIRE_SIZE * 0.18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 8,
-    borderColor: '#444',
-    overflow: 'hidden',
+    width: WHEEL,
+    height: WHEEL,
+    borderRadius: WHEEL / 2,
+    backgroundColor: '#000',
     zIndex: 2,
   },
-  sliceButton: {
-    width: 90,
-    height: 50,
+  leftWheel: {
+    left: 16,
+    top: -WHEEL * 0.8,
+  },
+  rightWheel: {
+    right: 16,
+    top: -WHEEL * 0.8,
+  },
+
+  // Slice-angled button row
+  sliceRow: {
+    flexDirection: 'row',
+    flexGrow: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+    marginHorizontal: WHEEL + 8,
+  },
+  sliceBtn: {
+    marginHorizontal: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    transform: [{ skewY: '-15deg' }],
     borderBottomWidth: 6,
     borderBottomColor: '#6b4c1e',
-    elevation: 8,
-    borderWidth: 1,
-    borderRadius: 8,
   },
-  sliceButtonActive: {
-    transform: [{ skewY: '-15deg' }],
+  sliceActive: {
     backgroundColor: '#f8b878',
     borderColor: '#fff',
-    shadowColor: '#fffacd',
-    shadowOpacity: 0.9,
-    shadowRadius: 12,
-    marginHorizontal: 6,
   },
-  sliceButtonNotActive: {
-    transform: [{ skewY: '-15deg' }],
+  sliceInactive: {
     backgroundColor: '#e0a96d',
     borderColor: '#444',
-    shadowColor: '#000',
-    shadowOpacity: 0.4,
-    shadowRadius: 5,
-    marginHorizontal: 6,
   },
-  buttonText: {
-    color: '#333',
+  sliceText: {
+    transform: [{ skewY: '15deg' }],
+    fontSize: BTN_FONT,
     fontWeight: 'bold',
-    fontSize: 13,
+    color: '#333',
   },
-  infoText: {
+  sliceTextActive: {
     color: '#fff',
-    fontSize: 16,
+    textShadowColor: '#fce38a',
+    textShadowRadius: 6,
+  },
+
+  // Login: floats right but part of flex
+  loginBtn: {
+    padding: 8,
+    marginRight: 16,
+    zIndex: 3,
+  },
+  loginIcon: {
+    fontSize: BTN_FONT * 1.2,
+  },
+
+  // Grey band
+  greyBand: {
+    width: '100%',
+    backgroundColor: '#777',
+    paddingVertical: 16,
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  statusBox: {
+    width: '90%',
+    maxWidth: MAX_HEADER_WIDTH,
+  },
+  statusText: {
+    color: '#fff',
+    fontSize: Math.max(14, Math.min(SW * 0.035, 18)),
     fontWeight: '600',
   },
 });
