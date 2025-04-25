@@ -14,11 +14,11 @@ var (
 	AdminAPIKey  string
 	DriverAPIKey string
 	BusAPIKey    string
+	Env          string
 )
 
+// main is the entry point for the server. It loads environment variables, initializes logging and the database, and starts the HTTP server.
 func main() {
-	logger.InitLogger()
-
 	// Load environment variables
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
@@ -28,6 +28,10 @@ func main() {
 	AdminAPIKey = os.Getenv("ADMIN_API_KEY")
 	DriverAPIKey = os.Getenv("DRIVER_API_KEY")
 	BusAPIKey = os.Getenv("BUS_API_KEY")
+	Env = os.Getenv("ENV")
+	LogLevel := os.Getenv("LOG_LEVEL")
+
+	logger.InitLogger(LogLevel)
 
 	// Initialize the database
 	storage.InitDB()

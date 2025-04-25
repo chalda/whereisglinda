@@ -8,6 +8,7 @@ import (
 	"whereisglinda-backend/models"
 )
 
+// GetActiveTripWithLatestLocation retrieves the active trip and its latest location from the database.
 func GetActiveTripWithLatestLocation(db *sql.DB) (*models.TripWithLocation, error) {
 	query := `
 	SELECT t.trip_id, t.active, t.ride_status, t.start_time, t.end_time,
@@ -38,6 +39,7 @@ func GetActiveTripWithLatestLocation(db *sql.DB) (*models.TripWithLocation, erro
 	return &trip, nil
 }
 
+// GetActiveTripID returns the ID of the currently active trip, or nil if none is active.
 func GetActiveTripID() (*int, error) {
 	query := "SELECT trip_id FROM trips WHERE active = 1 LIMIT 1"
 	row := DB.QueryRow(query)
@@ -56,6 +58,7 @@ func GetActiveTripID() (*int, error) {
 	return &result, nil
 }
 
+// CreateTrip inserts a new trip into the database.
 func CreateTrip(db *sql.DB, trip *models.Trip) error {
 	query := "INSERT INTO trips (name, start_time, end_time, ride_status, active) VALUES (?, ?, ?, ?, ?)"
 	_, err := db.Exec(query, trip.Name, trip.StartTime, trip.EndTime, trip.RideStatus, trip.Active)
@@ -67,9 +70,10 @@ func CreateTrip(db *sql.DB, trip *models.Trip) error {
 	return nil
 }
 
-func UpdateTrip(db *sql.DB, trip *models.Trip) error {
+// UpdateTrip updates an existing trip in the database.
+func UpdateTrip(db *sql.DB, tripID int, trip *models.Trip) error {
 	query := "UPDATE trips SET name = ?, start_time = ?, end_time = ?, ride_status = ?, active = ? WHERE trip_id = ?"
-	_, err := db.Exec(query, trip.Name, trip.StartTime, trip.EndTime, trip.RideStatus, trip.Active, trip.TripID)
+	_, err := db.Exec(query, trip.Name, trip.StartTime, trip.EndTime, trip.RideStatus, trip.Active, tripID)
 	if err != nil {
 		logger.Log.Error().Err(err).Interface("trip", trip).Msg("Error updating trip")
 		return err
@@ -78,6 +82,7 @@ func UpdateTrip(db *sql.DB, trip *models.Trip) error {
 	return nil
 }
 
+// GetTripByID retrieves a trip by its ID from the database.
 func GetTripByID(tripID int) (*models.Trip, error) {
 	query := "SELECT trip_id, name, start_time, end_time, active FROM trips WHERE trip_id = ?"
 	row := DB.QueryRow(query, tripID)
@@ -95,6 +100,7 @@ func GetTripByID(tripID int) (*models.Trip, error) {
 	return trip, nil
 }
 
+// EndTrip marks a trip as ended in the database.
 func EndTrip(tripID int) error {
 	query := "UPDATE trips SET end_time = CURRENT_TIMESTAMP, active = 0 WHERE trip_id = ?"
 	_, err := DB.Exec(query, tripID)
@@ -106,6 +112,7 @@ func EndTrip(tripID int) error {
 	return nil
 }
 
+// StartTrip ends any currently active trip and starts a new trip.
 func StartTrip(name string, rideStatus string) error {
 	tx, err := DB.Begin()
 	if err != nil {
@@ -141,6 +148,7 @@ func StartTrip(name string, rideStatus string) error {
 	return nil
 }
 
+// GetLocationsForTripFiltered retrieves locations for a trip, optionally filtered by timestamp.
 func GetLocationsForTripFiltered(tripID int, after *time.Time) ([]models.TripLocation, error) {
 	query := `
 	SELECT id, trip_id, latitude, longitude, in_geofence, timestamp
@@ -156,7 +164,7 @@ func GetLocationsForTripFiltered(tripID int, after *time.Time) ([]models.TripLoc
 	query += " ORDER BY timestamp"
 	rows, err := DB.Query(query, args...)
 	if err != nil {
-		logger.Log.Error().Err(err).Int("tripID", tripID).Msg("Error querying filtered locations for trip")
+		logger.Log.Error().Err(err).Int("tripID", tripID).Interface("after", after).Msg("Error querying filtered locations for trip")
 		return nil, err
 	}
 	defer rows.Close()
@@ -176,7 +184,7 @@ func GetLocationsForTripFiltered(tripID int, after *time.Time) ([]models.TripLoc
 	return locations, nil
 }
 
-// EndInactiveTrips ends trips with no location updates in the last 2 hours
+// EndInactiveTrips ends trips that have not received location updates in the last 2 hours.
 func EndInactiveTrips() error {
 	cutoff := time.Now().Add(-2 * time.Hour)
 	_, err := DB.Exec(`
@@ -197,6 +205,7 @@ func EndInactiveTrips() error {
 	return nil
 }
 
+// MonitorTripInactivity periodically checks for inactive trips and ends them if necessary.
 func MonitorTripInactivity() {
 	for {
 		time.Sleep(10 * time.Minute)

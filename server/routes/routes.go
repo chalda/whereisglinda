@@ -2,17 +2,18 @@ package routes
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 	"whereisglinda-backend/handlers"
+	"whereisglinda-backend/logger"
 
 	muxHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
 
+// SetupRoutes configures all HTTP routes for the server.
 func SetupRoutes() *mux.Router {
 	router := mux.NewRouter()
 
@@ -28,6 +29,8 @@ func SetupRoutes() *mux.Router {
 
 	// Trip Endpoints
 	router.HandleFunc("/trip", handlers.StartNewTrip).Methods("POST")        // Create a new trip
+	// @TODO replace /end with update active=0 /trip/{id}/
+	router.HandleFunc("/trip/{tripID}", handlers.UpdateTrip).Methods("PUT") // End a trip by ID
 	router.HandleFunc("/trip/end", handlers.EndTrip).Methods("POST")         // End a trip
 	router.HandleFunc("/trip/active", handlers.GetActiveTrip).Methods("GET") // Fetch active trip
 
@@ -37,14 +40,24 @@ func SetupRoutes() *mux.Router {
 	return router
 }
 
+// zerologRecoveryLogger is a custom recovery logger for gorilla/handlers that writes to zerolog.
+type zerologRecoveryLogger struct{}
+
+func (z zerologRecoveryLogger) Println(args ...interface{}) {
+	logger.Log.Error().Msgf("PANIC: %v", args)
+}
+
+// StartServer starts the HTTP server with logging, recovery, CORS, and graceful shutdown.
 func StartServer() {
 	router := SetupRoutes()
 
-	// Wrap the router with middleware
-	loggedRouter := muxHandlers.LoggingHandler(os.Stdout, router) // Log all requests to stdout
+	// Use zerolog for access logging to both stdout and access.log
+	accessLogWriter := logger.AccessLog
+	loggedRouter := muxHandlers.LoggingHandler(accessLogWriter, router)
+
 	recoveryRouter := muxHandlers.RecoveryHandler(
 		muxHandlers.PrintRecoveryStack(true),
-		muxHandlers.RecoveryLogger(log.New(os.Stderr, "PANIC: ", log.LstdFlags)),
+		muxHandlers.RecoveryLogger(zerologRecoveryLogger{}),
 	)(loggedRouter) // Recover from panics
 	corsRouter := muxHandlers.CORS( // Handle OPTIONS requests and CORS
 		muxHandlers.AllowedOrigins([]string{"*"}),
@@ -52,36 +65,33 @@ func StartServer() {
 		muxHandlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
 	)(recoveryRouter)
 
-	// Create the HTTP server
 	server := &http.Server{
 		Addr:         ":8080",
 		Handler:      corsRouter,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
-		IdleTimeout:  60 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  90 * time.Second,
 	}
 
-	// Graceful shutdown handling
 	go func() {
-		log.Printf("Server is running on http://localhost%s", server.Addr)
+		logger.Log.Info().Str("addr", server.Addr).Msg("Server is running")
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Could not listen on %s: %v\n", server.Addr, err)
+			logger.Log.Fatal().Err(err).Msgf("Could not listen on %s", server.Addr)
 		}
 	}()
 
-	// Wait for interrupt signal to gracefully shut down the server
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, os.Kill)
 
 	<-stop
-	log.Println("Shutting down the server...")
+	logger.Log.Info().Msg("Shutting down the server...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
-		log.Fatalf("Server forced to shutdown: %v", err)
+		logger.Log.Fatal().Err(err).Msg("Server forced to shutdown")
 	}
 
-	log.Println("Server stopped gracefully")
+	logger.Log.Info().Msg("Server stopped gracefully")
 }

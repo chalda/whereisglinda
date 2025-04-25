@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 	"whereisglinda-backend/logger"
+	"whereisglinda-backend/models"
 	"whereisglinda-backend/storage"
 
 	"github.com/gorilla/mux"
@@ -40,6 +41,36 @@ func StartNewTrip(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// UpdateTrip updates the details of an existing trip
+func UpdateTrip(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	tripID, err := strconv.Atoi(params["tripID"])
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("Invalid trip ID")
+		http.Error(w, "Invalid trip ID", http.StatusBadRequest)
+		return
+	}
+
+	var trip models.Trip
+	if err := json.NewDecoder(r.Body).Decode(&trip); err != nil {
+		logger.Log.Error().Err(err).Msg("Error decoding request body")
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	err = storage.UpdateTrip(storage.DB, tripID, &trip)
+	if err != nil {
+		logger.Log.Error().Err(err).Int("tripID", tripID).Msg("Error updating trip")
+		http.Error(w, "Failed to update trip", http.StatusInternalServerError)
+		return
+	}
+
+	logger.Log.Debug().Int("tripID", tripID).Msg("Trip updated successfully")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(trip)
+}
+
+// GetTrip retrieves a trip by its ID`
 func GetTrip(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	tripID, err := strconv.Atoi(params["tripID"])

@@ -2,8 +2,8 @@ package storage
 
 import (
 	"database/sql"
-	"log"
 	"time"
+	"whereisglinda-backend/logger"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -16,7 +16,8 @@ func InitDB() {
 	var err error
 	DB, err = sql.Open("sqlite3", "./whereisglinda.db")
 	if err != nil {
-		log.Fatalf("Failed to connect to the database: %v", err)
+		logger.Log.Error().Err(err).Msg("Failed to connect to the database")
+		panic(err)
 	}
 
 	// Create tables
@@ -28,7 +29,8 @@ func InitDB() {
 
 	HOME_GEOFENCE, err = GetLatestGeofence()
 	if err != nil {
-		log.Fatalf("Failed to get geofence: %v", err)
+		logger.Log.Error().Err(err).Msg("Failed to get geofence")
+		panic(err)
 	}
 
 	// Start a background routine to end inactive trips
@@ -36,7 +38,7 @@ func InitDB() {
 		for {
 			err := EndInactiveTrips()
 			if err != nil {
-				log.Printf("Error ending inactive trips: %v", err)
+				logger.Log.Error().Err(err).Msg("Error ending inactive trips")
 			}
 			time.Sleep(1 * time.Hour) // Run every hour
 		}
@@ -59,13 +61,15 @@ func createTables() {
     `)
 
 	if err != nil {
-		log.Fatalf("Failed to create trips table: %v", err)
+		logger.Log.Error().Err(err).Msg("Failed to create trips table")
+		panic(err)
 	}
 
 	_, err = DB.Exec(`CREATE UNIQUE INDEX IF NOT EXISTS one_active_trip ON trips (active) WHERE active = 1;`)
 
 	if err != nil {
-		log.Fatalf("Failed to create trips indexx: %v", err)
+		logger.Log.Error().Err(err).Msg("Failed to create trips indexx")
+		panic(err)
 	}
 	// Create locations table
 	_, err = DB.Exec(`
@@ -80,7 +84,8 @@ func createTables() {
         )
     `)
 	if err != nil {
-		log.Fatalf("Failed to create locations table: %v", err)
+		logger.Log.Error().Err(err).Msg("Failed to create locations table")
+		panic(err)
 	}
 
 	// Create geofence table
@@ -93,6 +98,7 @@ func createTables() {
 	 )
  `)
 	if err != nil {
-		log.Fatalf("Failed to create geofence table: %v", err)
+		logger.Log.Error().Err(err).Msg("Failed to create geofence table")
+		panic(err)
 	}
 }
