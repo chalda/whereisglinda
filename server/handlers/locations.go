@@ -46,17 +46,12 @@ func AddLocation(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	if !location.InGeofence {
-		select {
-		case locationChan <- location:
-			logger.Log.Debug().Interface("location", location).Msg("Location pushed to channel")
-		default:
-			logger.Log.Error().Msg("Location channel is full, dropping location")
-		}
+		locationChan <- location
+		// select {
+		// case locationChan <- location:
+		// 	logger.Log.Debug().Interface("location", location).Msg("Location pushed to channel")
+		// default:
+		// 	logger.Log.Error().Msg("Location channel is full, dropping location")
+		// }
 	}
 }
-
-
-
-
-
-

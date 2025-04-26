@@ -1,5 +1,5 @@
 import * as Location from 'expo-location';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { Alert, Platform } from 'react-native';
 
 import { sendLocation } from '../utils/api';
@@ -8,21 +8,20 @@ import { TripLocation } from '../types';
 type LocationTrackerProps = {
   apiKey: string;
   trackingEnabled: boolean;
-  activeTripId: number | null | undefined;
-  onTrackingDisabled?: () => void;
+  activeTripId: number | undefined;
 };
 
 const LocationTracker: React.FC<LocationTrackerProps> = ({
   apiKey,
   trackingEnabled,
   activeTripId,
-  onTrackingDisabled = () => {}, // Default no-op function
 }) => {
-  const trackingIntervalRef = useRef<number | null>(null); // Use `number` for React Native
+  const trackingIntervalRef = useRef<number | null>(null);
 
-  const requestLocationPermission = async (): Promise<boolean> => {
+  const requestLocationPermission = useCallback(async (): Promise<boolean> => {
     try {
       if (Platform.OS === 'web') {
+        console.log('Web platform: skipping permission request');
         return true;
       }
 
@@ -43,16 +42,16 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
       Alert.alert('Error', 'Failed to request location permission.');
       return false;
     }
-  };
+  }, []);
 
-  const startLocationTracking = async () => {
+  const startLocationTracking = useCallback(async () => {
     if (trackingIntervalRef.current) {
       return; // Prevent multiple intervals
     }
 
     const hasPermission = await requestLocationPermission();
     if (!hasPermission) {
-      onTrackingDisabled();
+      //onTrackingDisabled();
       return;
     }
 
@@ -66,24 +65,24 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
       } catch (err) {
         console.error('Failed to send location:', err.message);
       }
-    }, 5000) as unknown as number; // Cast to `number` for React Native
-  };
+    }, 5000) as unknown as number;
+  }, [apiKey, activeTripId, requestLocationPermission]);
 
-  const stopLocationTracking = () => {
+  const stopLocationTracking = useCallback(() => {
     if (trackingIntervalRef.current) {
       clearInterval(trackingIntervalRef.current);
       trackingIntervalRef.current = null;
       console.log('Location tracking stopped.');
     }
-  };
+  }, []);
 
   useEffect(() => {
+    console.log('LocationTracker useEffect', { trackingEnabled, activeTripId, apiKey });
     if (!activeTripId && trackingEnabled) {
       Alert.alert(
         'Tracking Disabled',
         'Location tracking has been stopped because the trip is no longer active.'
       );
-      onTrackingDisabled();
       stopLocationTracking();
       return;
     }
@@ -91,15 +90,13 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
     if (trackingEnabled) {
       startLocationTracking();
     } else {
-      onTrackingDisabled();
       stopLocationTracking();
     }
 
     return () => {
-      onTrackingDisabled();
       stopLocationTracking();
     };
-  }, [trackingEnabled, activeTripId]);
+  }, [trackingEnabled]);
 
   return null;
 };

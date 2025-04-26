@@ -196,6 +196,9 @@ func GetLatestTripLocations(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to fetch trip locations", http.StatusInternalServerError)
 		return
 	}
+	if len(locations) == 0 {
+		locations = []models.TripLocation{}
+	}
 
 	logger.Log.Debug().Int("tripID", *tripID).Msgf("Locations retrieved: %v", locations)
 	w.Header().Set("Content-Type", "application/json")

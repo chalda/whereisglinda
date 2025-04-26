@@ -5,7 +5,7 @@ import { AppContext } from '../AppContext';
 import { createNewTrip, updateTrip, endTrip, fetchActiveTrip } from '../utils/api';
 
 const AppControls = () => {
-  const { apiKey, userRole, activeTrip, setActiveTrip, geofence, setLocationTrackingEnabled } =
+  const { apiKey, userRole, activeTrip, setActiveTrip, geofence, setLocationTrackerForTripId } =
     useContext(AppContext);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -18,7 +18,7 @@ const AppControls = () => {
       await createNewTrip(apiKey);
       const trip = await fetchActiveTrip(apiKey);
       setActiveTrip(trip);
-      setLocationTrackingEnabled(!!trip?.tripId);
+      setLocationTrackerForTripId(trip?.tripId);
     } catch (err) {
       console.error('Failed to create new trip:', err.message);
     } finally {
@@ -32,7 +32,6 @@ const AppControls = () => {
       await endTrip(apiKey);
       const trip = await fetchActiveTrip(apiKey);
       setActiveTrip(trip);
-      setLocationTrackingEnabled(!!trip?.tripId);
     } catch (err) {
       console.error('Failed to end trip:', err.message);
     } finally {

@@ -23,8 +23,8 @@ export interface AppContextProps {
   latestLocation: TripLocation | null;
   setLatestLocation: (location: TripLocation | null) => void;
   locationSubscriptionEnabled: boolean;
-  locationTrackingEnabled: boolean;
-  setLocationTrackingEnabled: (enabled: boolean) => void;
+  locationTrackerForTripId: number | null;
+  setLocationTrackerForTripId: (number) => void;
 }
 
 export const AppContext = createContext<AppContextProps>({} as AppContextProps);
@@ -42,7 +42,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [geofence, setGeofence] = useState<Location[] | null>(null);
   const [latestLocation, setLatestLocation] = useState<TripLocation | null>(null);
   const [locationSubscriptionEnabled, setLocationSubscriptionEnabled] = useState(false);
-  const [locationTrackingEnabled, setLocationTrackingEnabled] = useState(false);
+  const [locationTrackerForTripId, setLocationTrackerForTripId] = useState(null);
 
   useEffect(() => {
     const fetchGeofenceData = async () => {
@@ -123,17 +123,24 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
           latestLocation,
           setLatestLocation,
           locationSubscriptionEnabled,
-          locationTrackingEnabled,
-          setLocationTrackingEnabled,
+          locationTrackerForTripId,
+          setLocationTrackerForTripId,
         }}>
         {children}
       </AppContext.Provider>
       <LocationTracker
         apiKey={apiKey}
-        trackingEnabled={locationTrackingEnabled}
+        trackingEnabled={!!(
+          locationTrackerForTripId && locationTrackerForTripId === activeTrip?.tripId
+        )}
         activeTripId={activeTrip?.tripId}
-        onTrackingDisabled={() => setLocationTrackingEnabled(false)}
       />
     </>
   );
 };
+
+// export const LocationTrackerContext = createContext({});
+
+// export const LocationTracker: React.FC<AppProviderProps> = ({ children }) => {
+//   return <LocationTrackerContext.Provider>{children}</LocationTrackerContext.Provider>;
+// };
