@@ -16,10 +16,10 @@ import { getTimeAgo } from '../utils/getTimeAgo';
 const { width: SW, height: SH } = Dimensions.get('window');
 
 // Responsive constraints
-const MAX_HEADER_WIDTH = 800;
-const YB_HEIGHT = Math.max(60, Math.min(SH * 0.12, 100)); // Yellow bar height
-const WHEEL = Math.max(50, Math.min(SW * 0.15, 100)); // Wheel diameter
-const BTN_FONT = Math.max(16, Math.min(SW * 0.04, 24)); // Button font-size
+const MAX_HEADER_WIDTH = 700;
+const YB_HEIGHT = Math.max(60, Math.min(SH * 0.15, 120)); // Yellow bar height
+const WHEEL = Math.max(60, Math.min(SW * 0.13, 120)); // Wheel diameter
+const BTN_FONT = Math.max(16, Math.min(SW * 0.04, 22)); // Button font-size
 const PAR_H = Math.max(120, Math.min(SH * 0.2, 240)); // Parallax height
 
 const BUTTONS = [
@@ -125,6 +125,7 @@ const styles = StyleSheet.create({
     left: 0,
     width: '100%',
     height: YB_HEIGHT + PAR_H + 40, // total header height
+    // height: '100%',
     zIndex: 0,
   },
 
@@ -136,8 +137,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MAX_HEADER_WIDTH,
     height: YB_HEIGHT,
+    marginBottom: 12,
     backgroundColor: '#FFD800',
-    zIndex: 1,
+    zIndex: 4,
   },
 
   // Wheels: 80% above bar, 20% overlay
@@ -147,15 +149,16 @@ const styles = StyleSheet.create({
     height: WHEEL,
     borderRadius: WHEEL / 2,
     backgroundColor: '#000',
-    zIndex: 2,
+    zIndex: 5,
+    bottom: -WHEEL * 0.7,
   },
   leftWheel: {
-    left: 16,
-    top: -WHEEL * 0.8,
+    left: '5%',
+    // top: -WHEEL * 0.8,
   },
   rightWheel: {
-    right: 16,
-    top: -WHEEL * 0.8,
+    right: '5%',
+    // top: -WHEEL * 0.8,
   },
 
   // Slice-angled button row
@@ -164,6 +167,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     marginHorizontal: WHEEL + 8,
+    zIndex: 4,
   },
   sliceBtn: {
     marginHorizontal: 6,
@@ -207,12 +211,14 @@ const styles = StyleSheet.create({
   greyBand: {
     width: '100%',
     backgroundColor: '#777',
-    paddingVertical: 16,
+    paddingVertical: 12,
     alignItems: 'center',
     zIndex: 1,
   },
   statusBox: {
-    width: '90%',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    // width: '90%',
     maxWidth: MAX_HEADER_WIDTH,
   },
   statusText: {
