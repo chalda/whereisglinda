@@ -15,6 +15,7 @@ scaffold.sh
 *.db
 
 ctx.txt
+context.txt
 *.log
 
 ios
@@ -25,7 +26,9 @@ build/
 dist/
 
 .vscode/
+.history
 .idea/
+
 
 # macOS
 .DS_Store

@@ -64,7 +64,7 @@
         ],
         "nxConsole.nxWorkspacePath": "..",
         "files.exclude": {
-            "**/.expo": true
+            "**/.expo": false
         }
     },
     "launch": {

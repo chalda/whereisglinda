@@ -17,6 +17,10 @@ android
 
 
 .vscode/
+ctx.txt
+context.txt
+.history
+*.log
 .idea/
 
 # macOS
