@@ -64,11 +64,6 @@ const Header = ({ navigation, state }) => {
 
       {/* Yellow bus band */}
       <View style={styles.yellowBar}>
-        {/* Left Wheel */}
-        <Animated.View
-          style={[styles.wheel, styles.leftWheel, { transform: [{ rotate: rotation }] }]}
-        />
-
         {/* Slice-angled buttons */}
         <View style={styles.sliceRow}>
           {BUTTONS.map((b) => {
@@ -90,21 +85,24 @@ const Header = ({ navigation, state }) => {
         <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginBtn}>
           <Text style={styles.loginIcon}>👤</Text>
         </TouchableOpacity>
-
-        {/* Right Wheel */}
-        <Animated.View
-          style={[styles.wheel, styles.rightWheel, { transform: [{ rotate: rotation }] }]}
-        />
       </View>
 
       {/* Grey pavement band */}
       <View style={styles.greyBand}>
+        {/* Left Wheel */}
+        <Animated.View
+          style={[styles.wheel, styles.leftWheel, { transform: [{ rotate: rotation }] }]}
+        />
         <View style={styles.statusBox}>
           <Text style={styles.statusText}>Bus Status: {activeTrip?.rideStatus || 'N/A'}</Text>
-          {activeTrip?.lastUpdate && (
-            <Text style={styles.statusText}>Last seen: {getTimeAgo(activeTrip.lastUpdate)}</Text>
-          )}
+          <Text style={styles.statusText}>
+            {activeTrip?.lastUpdate ? `Last seen: ${getTimeAgo(activeTrip.lastUpdate)}` : null}
+          </Text>
         </View>
+        {/* Right Wheel */}
+        <Animated.View
+          style={[styles.wheel, styles.rightWheel, { transform: [{ rotate: rotation }] }]}
+        />
       </View>
     </View>
   );
@@ -116,6 +114,8 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     alignItems: 'center',
+    position: 'relative',
+    height: PAR_H + 40, // total header height
   },
 
   // Parallax: full width, sits at bottom of headerContainer behind bars
@@ -124,9 +124,31 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     width: '100%',
-    height: YB_HEIGHT + PAR_H + 40, // total header height
+    height: '75%',
     // height: '100%',
     zIndex: 0,
+  },
+
+  // Grey band
+  // greyBand: {
+  //   width: '100%',
+  //   backgroundColor: '#777',
+  //   paddingVertical: 12,
+  //   alignItems: 'center',
+  //   zIndex: 1,
+  // },
+  greyBand: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    backgroundColor: '#777',
+    width: '100%',
+    height: '25%',
+    minHeight: 40,
+
+    // height: YB_HEIGHT + PAR_H + 40, // total header height
+    // // height: '100%',
+    zIndex: 4,
   },
 
   // Yellow bar holds wheels + nav
@@ -139,9 +161,21 @@ const styles = StyleSheet.create({
     height: YB_HEIGHT,
     marginBottom: 12,
     backgroundColor: '#FFD800',
-    zIndex: 4,
+    zIndex: 3,
   },
 
+  statusBox: {
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    zIndex: 5,
+    // width: '90%',
+    maxWidth: MAX_HEADER_WIDTH,
+  },
+  statusText: {
+    color: '#fff',
+    fontSize: Math.max(14, Math.min(SW * 0.035, 18)),
+    fontWeight: '600',
+  },
   // Wheels: 80% above bar, 20% overlay
   wheel: {
     position: 'absolute',
@@ -150,7 +184,7 @@ const styles = StyleSheet.create({
     borderRadius: WHEEL / 2,
     backgroundColor: '#000',
     zIndex: 5,
-    bottom: -WHEEL * 0.7,
+    bottom: 12,
   },
   leftWheel: {
     left: '5%',
@@ -170,21 +204,60 @@ const styles = StyleSheet.create({
     zIndex: 4,
   },
   sliceBtn: {
-    marginHorizontal: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    width: 90,
+    height: 50,
     transform: [{ skewY: '-15deg' }],
+
+    justifyContent: 'center',
+    alignItems: 'center',
     borderBottomWidth: 6,
     borderBottomColor: '#6b4c1e',
+    elevation: 8,
+    borderWidth: 1,
+    borderRadius: 8,
+    marginHorizontal: 6,
   },
   sliceActive: {
     backgroundColor: '#f8b878',
     borderColor: '#fff',
+    shadowColor: '#fffacd',
+    shadowOpacity: 0.9,
+    shadowRadius: 12,
   },
   sliceInactive: {
     backgroundColor: '#e0a96d',
     borderColor: '#444',
+    shadowColor: '#000',
+    shadowOpacity: 0.4,
+    shadowRadius: 5,
   },
+  buttonText: {
+    transform: [{ skewY: '15deg' }],
+    fontSize: BTN_FONT,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  // buttonText: {
+  //   color: '#333',
+  //   fontWeight: 'bold',
+  //   fontSize: 13,
+  // },
+  // sliceBtn: {
+  //   marginHorizontal: 6,
+  //   paddingVertical: 8,
+  //   paddingHorizontal: 14,
+  //   transform: [{ skewY: '-15deg' }],
+  //   borderBottomWidth: 6,
+  //   borderBottomColor: '#6b4c1e',
+  // },
+  // sliceActive: {
+  //   backgroundColor: '#f8b878',
+  //   borderColor: '#fff',
+  // },
+  // sliceInactive: {
+  //   backgroundColor: '#e0a96d',
+  //   borderColor: '#444',
+  // },
   sliceText: {
     transform: [{ skewY: '15deg' }],
     fontSize: BTN_FONT,
@@ -205,25 +278,5 @@ const styles = StyleSheet.create({
   },
   loginIcon: {
     fontSize: BTN_FONT * 1.2,
-  },
-
-  // Grey band
-  greyBand: {
-    width: '100%',
-    backgroundColor: '#777',
-    paddingVertical: 12,
-    alignItems: 'center',
-    zIndex: 1,
-  },
-  statusBox: {
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    // width: '90%',
-    maxWidth: MAX_HEADER_WIDTH,
-  },
-  statusText: {
-    color: '#fff',
-    fontSize: Math.max(14, Math.min(SW * 0.035, 18)),
-    fontWeight: '600',
   },
 });
