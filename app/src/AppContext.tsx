@@ -70,7 +70,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   }, []); // Fetch geofence only once when the component mounts
 
   useEffect(() => {
-    let everyOther = 0;
+    let everyOther = 1;
     const fetchActiveTripData = async () => {
       try {
         const trip = await fetchActiveTrip(apiKey);
