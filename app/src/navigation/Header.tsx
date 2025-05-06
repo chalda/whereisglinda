@@ -1,5 +1,4 @@
-// app/src/navigation/Header.tsx
-import React, { useRef, useContext, useEffect } from 'react';
+import React, { useRef, useContext, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,20 +6,20 @@ import {
   Animated,
   Image,
   Dimensions,
-  StyleSheet,
   Platform,
+  StyleSheet,
 } from 'react-native';
+import Svg, { Rect, Polygon } from 'react-native-svg';
 import { AppContext } from '../AppContext';
 import { getTimeAgo } from '../utils/getTimeAgo';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
-// Responsive constraints
-const MAX_HEADER_WIDTH = 700;
-const YB_HEIGHT = Math.max(60, Math.min(SH * 0.15, 120)); // Yellow bar height
-const WHEEL = Math.max(60, Math.min(SW * 0.13, 120)); // Wheel diameter
-const BTN_FONT = Math.max(16, Math.min(SW * 0.04, 22)); // Button font-size
-const PAR_H = Math.max(120, Math.min(SH * 0.2, 240)); // Parallax height
+const MAX_WIDTH = 700;
+const YELLOW_HEIGHT = Math.max(60, Math.min(SH * 0.12, 100));
+const ROAD_HEIGHT = Math.max(70, Math.min(SH * 0.08, 90));
+const WHEEL_SIZE = Math.max(50, Math.min(SW * 0.15, 90));
+const BUTTON_FONT = Math.max(16, Math.min(SW * 0.04, 22));
 
 const BUTTONS = [
   { label: 'Hire', route: 'Hire' },
@@ -30,83 +29,163 @@ const BUTTONS = [
 
 const Header = ({ navigation, state }) => {
   const { activeTrip } = useContext(AppContext);
-  const spin = useRef(new Animated.Value(0)).current;
   const activeRoute = state.routeNames[state.index];
 
-  // Unified loop for both wheels & parallax
+  const spin = useRef(new Animated.Value(0)).current;
+  const spinValue = useRef(0);
+  const [spinVelocity, setSpinVelocity] = useState(0);
+  const spinFrame = useRef<number>();
+
+  const translateX = useRef(new Animated.Value(0)).current;
+
+  // useEffect(() => {
+  //   let frameId: number;
+  //   const animate = () => {
+  //     spinValue.current = (spinValue.current + spinVelocity) % 1;
+  //     spin.setValue(spinValue.current);
+  //     if (spinVelocity > 0.001) {
+  //       setSpinVelocity((v) => v * 0.985);
+  //     } else {
+  //       setSpinVelocity(0);
+  //     }
+  //     frameId = requestAnimationFrame(animate);
+  //   };
+  //   animate();
+  //   return () => cancelAnimationFrame(frameId);
+  // }, [spinVelocity]);
+
   useEffect(() => {
+    animateWheels(10000, 1);
+    animateBackground(10000, -SW);
+  }, [activeTrip]);
+
+  const boostSpin = () => {
+    setSpinVelocity(0.02);
+  };
+
+  const animateWheels = (duration, distance) => {
     Animated.loop(
       Animated.timing(spin, {
-        toValue: 1,
-        duration: 4000,
+        toValue: distance,
+        duration: duration,
         useNativeDriver: true,
       })
     ).start();
-  }, [spin]);
+  };
 
-  // Trigger on route or trip change
-  useEffect(() => {
-    spin.setValue(0);
-  }, [activeRoute, activeTrip]);
+  const animateBackground = (duration, distance) => {
+    Animated.loop(
+      Animated.timing(translateX, {
+        toValue: distance,
+        duration: duration,
+        useNativeDriver: true,
+      })
+    ).start();
+  };
 
-  // Interpolations
-  const rotation = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
-  const translateX = spin.interpolate({ inputRange: [0, 1], outputRange: [0, -SW * 0.1] });
+  const rotation = spin.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
+  const shortAnimation = (direction) => {
+    spin.stopAnimation((value) => {
+      animateWheels(1000, value + value * 0.5 * direction);
+    });
+    translateX.stopAnimation((value) => {
+      animateBackground(1000, value + value * 0.5 * direction);
+    });
+  };
+
+  const handleButtonPress = (route, direction) => {
+    shortAnimation(direction);
+    navigation.navigate(route);
+  };
+
+  const generateNavButtons = () => {
+    let curActiveIdx = 999999;
+    const btns = BUTTONS.map((b, idx) => {
+      const isActive = activeRoute === b.route;
+      if (isActive) {
+        curActiveIdx = idx;
+      }
+      return (
+        <TouchableOpacity
+          key={b.route}
+          onPress={() => {
+            handleButtonPress(b.route, idx > curActiveIdx ? 1 : -1);
+          }}
+          style={[styles.button, isActive ? styles.active : styles.inactive]}>
+          <Text style={isActive ? styles.buttonTextActive : styles.buttonText}>{b.label}</Text>
+        </TouchableOpacity>
+      );
+    });
+    return btns;
+  };
 
   return (
     <View style={styles.container}>
-      {/* Parallax background */}
+      {/* Animated Background */}
       <Animated.Image
         source={require('../assets/cartoon_city.png')}
-        style={[styles.parallaxBg, { transform: [{ translateX }] }]}
-        resizeMode="cover"
+        resizeMode="repeat"
+        style={[styles.parallax, { transform: [{ translateX }] }]}
       />
 
-      {/* Yellow bus band */}
-      <View style={styles.yellowBar}>
-        {/* Slice-angled buttons */}
-        <View style={styles.sliceRow}>
-          {BUTTONS.map((b) => {
-            const isActive = activeRoute === b.route;
-            return (
-              <TouchableOpacity
-                key={b.route}
-                onPress={() => navigation.navigate(b.route)}
-                style={[styles.sliceBtn, isActive ? styles.sliceActive : styles.sliceInactive]}>
-                <Text style={[styles.sliceText, isActive && styles.sliceTextActive]}>
-                  {b.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+      {/* Bus Body */}
+      <View style={styles.busBand}>
+        <View style={styles.svgContainer}>
+          <Svg height={YELLOW_HEIGHT} width="100%" viewBox="0 0 700 100" preserveAspectRatio="none">
+            <Rect x="0" y="0" width="620" height="100" fill="#FFD800" />
+            <Polygon points="620,0 700,0 680,100 620,100" fill="#FFD800" />
+            <Polygon points="660,0 700,0 680,40 660,40" fill="#fff" opacity="0.25" />
+          </Svg>
         </View>
 
-        {/* Login icon */}
-        <TouchableOpacity onPress={() => navigation.navigate('Login')} style={styles.loginBtn}>
+        {/* Buttons */}
+        <View style={styles.buttonRow}>{generateNavButtons()}</View>
+
+        {/* Login Button */}
+        <TouchableOpacity
+          onPress={() => {
+            boostSpin();
+            navigation.navigate('Login');
+          }}
+          style={styles.loginButton}>
           <Text style={styles.loginIcon}>👤</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Grey pavement band */}
-      <View style={styles.greyBand}>
-        {/* Left Wheel */}
-        <Animated.View
-          style={[styles.wheel, styles.leftWheel, { transform: [{ rotate: rotation }] }]}
-        />
-        <View style={styles.statusBox}>
+      {/* Road & Message Block */}
+      <View style={styles.roadBand}>
+        <Animated.View style={[styles.wheel, { transform: [{ rotate: rotation }] }]}>
+          <Image
+            source={require('../assets/glinda_icon.png')}
+            style={styles.wheelImage}
+            resizeMode="cover"
+          />
+        </Animated.View>
+
+        <View style={styles.statusContainer}>
           <Text style={styles.statusText}>Bus Status: {activeTrip?.rideStatus || 'N/A'}</Text>
-          <Text style={styles.statusText}>
-            {activeTrip?.lastUpdate ? `Last seen: ${getTimeAgo(activeTrip.lastUpdate)}` : null}
-          </Text>
+          {activeTrip?.lastUpdate && (
+            <Text style={styles.statusText}>Last seen: {getTimeAgo(activeTrip.lastUpdate)}</Text>
+          )}
         </View>
-        {/* Right Wheel */}
-        <Animated.View
-          style={[styles.wheel, styles.rightWheel, { transform: [{ rotate: rotation }] }]}
-        />
+        <Animated.View style={[styles.wheel, { transform: [{ rotate: rotation }] }]}>
+          <Image source={require('../assets/glinda_icon.png')} style={styles.wheelImage} />
+        </Animated.View>
       </View>
     </View>
   );
 };
+
+//<View style={styles.wheel}>
+//<Animated.Image source={require('../assets/glinda_icon.png')} style={[styles.wheelImage, { transform: [{ //rotate:rotation }] }]} />
+//</View>
+// <Animated.View style={[styles.wheel, { transform: [{ rotate: rotation }] }]}>
+// <Image source={require('../assets/glinda_icon.png')} style={styles.wheelImage} />
+// </Animated.View>
 
 export default Header;
 
@@ -114,169 +193,105 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     alignItems: 'center',
-    position: 'relative',
-    height: PAR_H + 40, // total header height
+    overflow: 'hidden',
+    backgroundColor: '#ccc',
   },
-
-  // Parallax: full width, sits at bottom of headerContainer behind bars
-  parallaxBg: {
+  parallax: {
     position: 'absolute',
     top: 0,
     left: 0,
-    width: '100%',
-    height: '75%',
-    // height: '100%',
-    zIndex: 0,
+    width: SW * 2,
+    height: YELLOW_HEIGHT + ROAD_HEIGHT + 50,
+    zIndex: 1,
   },
-
-  // Grey band
-  // greyBand: {
-  //   width: '100%',
-  //   backgroundColor: '#777',
-  //   paddingVertical: 12,
-  //   alignItems: 'center',
-  //   zIndex: 1,
-  // },
-  greyBand: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    backgroundColor: '#777',
+  busBand: {
     width: '100%',
-    height: '25%',
-    minHeight: 40,
-
-    // height: YB_HEIGHT + PAR_H + 40, // total header height
-    // // height: '100%',
-    zIndex: 4,
-  },
-
-  // Yellow bar holds wheels + nav
-  yellowBar: {
-    flexDirection: 'row',
+    maxWidth: MAX_WIDTH,
+    height: YELLOW_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
-    maxWidth: MAX_HEADER_WIDTH,
-    height: YB_HEIGHT,
-    marginBottom: 12,
-    backgroundColor: '#FFD800',
-    zIndex: 3,
+    position: 'relative',
+    zIndex: 2,
   },
-
-  statusBox: {
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    zIndex: 5,
-    // width: '90%',
-    maxWidth: MAX_HEADER_WIDTH,
+  svgContainer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
   },
-  statusText: {
-    color: '#fff',
-    fontSize: Math.max(14, Math.min(SW * 0.035, 18)),
-    fontWeight: '600',
-  },
-  // Wheels: 80% above bar, 20% overlay
-  wheel: {
-    position: 'absolute',
-    width: WHEEL,
-    height: WHEEL,
-    borderRadius: WHEEL / 2,
-    backgroundColor: '#000',
-    zIndex: 5,
-    bottom: 12,
-  },
-  leftWheel: {
-    left: '5%',
-    // top: -WHEEL * 0.8,
-  },
-  rightWheel: {
-    right: '5%',
-    // top: -WHEEL * 0.8,
-  },
-
-  // Slice-angled button row
-  sliceRow: {
+  buttonRow: {
     flexDirection: 'row',
-    flexGrow: 1,
     justifyContent: 'center',
-    marginHorizontal: WHEEL + 8,
-    zIndex: 4,
+    zIndex: 2,
   },
-  sliceBtn: {
-    width: 90,
-    height: 50,
+  button: {
+    marginHorizontal: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     transform: [{ skewY: '-15deg' }],
-
-    justifyContent: 'center',
-    alignItems: 'center',
     borderBottomWidth: 6,
     borderBottomColor: '#6b4c1e',
-    elevation: 8,
-    borderWidth: 1,
     borderRadius: 8,
-    marginHorizontal: 6,
   },
-  sliceActive: {
+  active: {
     backgroundColor: '#f8b878',
-    borderColor: '#fff',
-    shadowColor: '#fffacd',
-    shadowOpacity: 0.9,
-    shadowRadius: 12,
   },
-  sliceInactive: {
+  inactive: {
     backgroundColor: '#e0a96d',
-    borderColor: '#444',
-    shadowColor: '#000',
-    shadowOpacity: 0.4,
-    shadowRadius: 5,
   },
   buttonText: {
     transform: [{ skewY: '15deg' }],
-    fontSize: BTN_FONT,
+    fontSize: BUTTON_FONT,
     fontWeight: 'bold',
     color: '#333',
   },
-  // buttonText: {
-  //   color: '#333',
-  //   fontWeight: 'bold',
-  //   fontSize: 13,
-  // },
-  // sliceBtn: {
-  //   marginHorizontal: 6,
-  //   paddingVertical: 8,
-  //   paddingHorizontal: 14,
-  //   transform: [{ skewY: '-15deg' }],
-  //   borderBottomWidth: 6,
-  //   borderBottomColor: '#6b4c1e',
-  // },
-  // sliceActive: {
-  //   backgroundColor: '#f8b878',
-  //   borderColor: '#fff',
-  // },
-  // sliceInactive: {
-  //   backgroundColor: '#e0a96d',
-  //   borderColor: '#444',
-  // },
-  sliceText: {
+  buttonTextActive: {
     transform: [{ skewY: '15deg' }],
-    fontSize: BTN_FONT,
+    fontSize: BUTTON_FONT,
     fontWeight: 'bold',
-    color: '#333',
-  },
-  sliceTextActive: {
     color: '#fff',
     textShadowColor: '#fce38a',
     textShadowRadius: 6,
   },
-
-  // Login: floats right but part of flex
-  loginBtn: {
-    padding: 8,
-    marginRight: 16,
+  loginButton: {
+    position: 'absolute',
+    right: 12,
+    top: 8,
     zIndex: 3,
   },
   loginIcon: {
-    fontSize: BTN_FONT * 1.2,
+    fontSize: BUTTON_FONT * 1.2,
+  },
+  roadBand: {
+    width: '100%',
+    maxWidth: MAX_WIDTH,
+    backgroundColor: '#777',
+    height: ROAD_HEIGHT,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SW < 400 ? 8 : 20,
+    zIndex: 2,
+  },
+  wheel: {
+    width: WHEEL_SIZE,
+    height: WHEEL_SIZE,
+    borderRadius: WHEEL_SIZE / 2,
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  wheelImage: {
+    width: '70%',
+    height: '70%',
+    resizeMode: 'contain',
+  },
+  statusContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statusText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });
