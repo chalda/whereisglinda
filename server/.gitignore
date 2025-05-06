@@ -13,7 +13,9 @@ web-build/
 .env
 scaffold.sh
 *.db
-
+lib/python*
+bin/
+pyvenv.cfg
 ctx.txt
 context.txt
 *.log
