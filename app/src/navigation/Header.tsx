@@ -15,10 +15,10 @@ import { getTimeAgo } from '../utils/getTimeAgo';
 
 const { width: SW, height: SH } = Dimensions.get('window');
 
-const MAX_WIDTH = 700;
+const MAX_WIDTH = 640;
 const YELLOW_HEIGHT = Math.max(60, Math.min(SH * 0.12, 100));
-const ROAD_HEIGHT = Math.max(70, Math.min(SH * 0.08, 90));
-const WHEEL_SIZE = Math.max(50, Math.min(SW * 0.15, 90));
+const ROAD_HEIGHT = Math.max(50, Math.min(SH * 0.07, 70));
+const WHEEL_SIZE = Math.max(50, Math.min(SW * 0.15, 70));
 const BUTTON_FONT = Math.max(16, Math.min(SW * 0.04, 22));
 
 const BUTTONS = [
@@ -32,9 +32,9 @@ const Header = ({ navigation, state }) => {
   const activeRoute = state.routeNames[state.index];
 
   const spin = useRef(new Animated.Value(0)).current;
-  const spinValue = useRef(0);
-  const [spinVelocity, setSpinVelocity] = useState(0);
-  const spinFrame = useRef<number>();
+  // const spinValue = useRef(0);
+  // const [spinVelocity, setSpinVelocity] = useState(0);
+  // const spinFrame = useRef<number>();
 
   const translateX = useRef(new Animated.Value(0)).current;
 
@@ -59,9 +59,9 @@ const Header = ({ navigation, state }) => {
     animateBackground(10000, -SW);
   }, [activeTrip]);
 
-  const boostSpin = () => {
-    setSpinVelocity(0.02);
-  };
+  // const boostSpin = () => {
+  //   setSpinVelocity(0.02);
+  // };
 
   const animateWheels = (duration, distance) => {
     Animated.loop(
@@ -112,6 +112,7 @@ const Header = ({ navigation, state }) => {
       return (
         <TouchableOpacity
           key={b.route}
+          disabled={isActive}
           onPress={() => {
             handleButtonPress(b.route, idx > curActiveIdx ? 1 : -1);
           }}
@@ -136,9 +137,9 @@ const Header = ({ navigation, state }) => {
       <View style={styles.busBand}>
         <View style={styles.svgContainer}>
           <Svg height={YELLOW_HEIGHT} width="100%" viewBox="0 0 700 100" preserveAspectRatio="none">
-            <Rect x="0" y="0" width="620" height="100" fill="#FFD800" />
-            <Polygon points="620,0 700,0 680,100 620,100" fill="#FFD800" />
-            <Polygon points="660,0 700,0 680,40 660,40" fill="#fff" opacity="0.25" />
+            <Rect x="0" y="0" width="620" height="100" fill="#E9D9C1" />
+            <Polygon points="500,100 600,0 660,0 740,100" fill="#E9D9C1" />
+            <Polygon points="660,0 660,0 700,40 660,40" fill="#fff" opacity="0.5" />
           </Svg>
         </View>
 
@@ -148,8 +149,7 @@ const Header = ({ navigation, state }) => {
         {/* Login Button */}
         <TouchableOpacity
           onPress={() => {
-            boostSpin();
-            navigation.navigate('Login');
+            handleButtonPress('Login', 1);
           }}
           style={styles.loginButton}>
           <Text style={styles.loginIcon}>👤</Text>
@@ -160,7 +160,7 @@ const Header = ({ navigation, state }) => {
       <View style={styles.roadBand}>
         <Animated.View style={[styles.wheel, { transform: [{ rotate: rotation }] }]}>
           <Image
-            source={require('../assets/glinda_icon.png')}
+            source={require('../assets/where_is_glinda_text.png')}
             style={styles.wheelImage}
             resizeMode="cover"
           />
@@ -173,7 +173,11 @@ const Header = ({ navigation, state }) => {
           )}
         </View>
         <Animated.View style={[styles.wheel, { transform: [{ rotate: rotation }] }]}>
-          <Image source={require('../assets/glinda_icon.png')} style={styles.wheelImage} />
+          <Image
+            source={require('../assets/where_is_glinda_text.png')}
+            style={styles.wheelImage}
+            resizeMode="cover"
+          />
         </Animated.View>
       </View>
     </View>
@@ -198,10 +202,10 @@ const styles = StyleSheet.create({
   },
   parallax: {
     position: 'absolute',
-    top: 0,
     left: 0,
     width: SW * 2,
-    height: YELLOW_HEIGHT + ROAD_HEIGHT + 50,
+    bottom: 0,
+    height: '100%',
     zIndex: 1,
   },
   busBand: {
@@ -238,13 +242,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#e0a96d',
   },
   buttonText: {
-    transform: [{ skewY: '15deg' }],
     fontSize: BUTTON_FONT,
     fontWeight: 'bold',
     color: '#333',
   },
   buttonTextActive: {
-    transform: [{ skewY: '15deg' }],
     fontSize: BUTTON_FONT,
     fontWeight: 'bold',
     color: '#fff',
@@ -253,7 +255,7 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     position: 'absolute',
-    right: 12,
+    right: 22,
     top: 8,
     zIndex: 3,
   },
@@ -268,10 +270,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: SW < 400 ? 8 : 20,
+    paddingHorizontal: SW < 400 ? 0 : 28,
     zIndex: 2,
+    marginTop: 8,
   },
   wheel: {
+    top: -30,
     width: WHEEL_SIZE,
     height: WHEEL_SIZE,
     borderRadius: WHEEL_SIZE / 2,
@@ -282,6 +286,7 @@ const styles = StyleSheet.create({
   },
   wheelImage: {
     width: '70%',
+    borderRadius: WHEEL_SIZE / 2,
     height: '70%',
     resizeMode: 'contain',
   },
