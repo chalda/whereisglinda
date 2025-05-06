@@ -45,8 +45,8 @@ const cfg: ExpoConfig = {
       {
         android: {
           hermes: true,
-          buildToolsVersion: '34.0.0',
-          compileSdkVersion: 34,
+          buildToolsVersion: '35.0.1',
+          compileSdkVersion: 35,
           targetSdkVersion: 34,
           minSdkVersion: 34,
         },

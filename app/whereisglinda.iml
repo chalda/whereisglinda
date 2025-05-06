@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module version="4">
+  <component name="AdditionalModuleElements">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/android/.gradle/8.10.2/dependencies-accessors/569c8b261a8a714d7731d5f568e0e5c05babae10/sources" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/android/.gradle/8.10.2/dependencies-accessors/633563da484e97172e803ec54a276bf953e60782/sources" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/android/app/src/main/java" isTestSource="false" />
+    </content>
+  </component>
+</module>
