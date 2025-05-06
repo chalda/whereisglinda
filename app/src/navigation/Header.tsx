@@ -18,13 +18,13 @@ const { width: SW, height: SH } = Dimensions.get('window');
 const MAX_WIDTH = 640;
 const YELLOW_HEIGHT = Math.max(60, Math.min(SH * 0.12, 100));
 const ROAD_HEIGHT = Math.max(50, Math.min(SH * 0.07, 70));
-const WHEEL_SIZE = Math.max(50, Math.min(SW * 0.15, 70));
+const WHEEL_SIZE = Math.max(60, Math.min(SW * 0.15, 80));
 const BUTTON_FONT = Math.max(16, Math.min(SW * 0.04, 22));
 
 const BUTTONS = [
-  { label: 'Hire', route: 'Hire' },
-  { label: 'Find Glinda', route: 'Map' },
   { label: 'About', route: 'About' },
+  { label: 'Find Glinda', route: 'Map' },
+  { label: 'Hire', route: 'Hire' },
 ];
 
 const Header = ({ navigation, state }) => {
