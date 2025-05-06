@@ -70,6 +70,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   }, []); // Fetch geofence only once when the component mounts
 
   useEffect(() => {
+    let everyOther = 0;
     const fetchActiveTripData = async () => {
       try {
         const trip = await fetchActiveTrip(apiKey);
@@ -77,8 +78,12 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
         // Fetch locations if there is an active trip
         if (trip) {
-          const tripLocations = await fetchLocations();
-          setLocations(tripLocations);
+          everyOther = everyOther % 2;
+          if (everyOther) {
+            const tripLocations = await fetchLocations();
+            setLocations(tripLocations);
+          }
+          everyOther++;
         } else {
           setLocations([]);
         }
@@ -86,6 +91,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         console.error('Failed to fetch active trip or locations:', err.message);
       }
     };
+    fetchActiveTripData();
 
     const intervalId = setInterval(fetchActiveTripData, ACTIVE_TRIP_UPDATE_INTERVAL);
 
@@ -142,9 +148,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       </AppContext.Provider>
       <LocationTracker
         apiKey={apiKey}
-        trackingEnabled={!!(
-          locationTrackerForTripId && locationTrackerForTripId === activeTrip?.tripId
-        )}
+        trackingEnabled={
+          !!(locationTrackerForTripId && locationTrackerForTripId === activeTrip?.tripId)
+        }
         activeTripId={activeTrip?.tripId}
       />
     </>
