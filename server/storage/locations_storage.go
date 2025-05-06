@@ -8,8 +8,8 @@ import (
 // SaveTripLocation saves a location to the database
 func SaveTripLocation(location models.TripLocation) error {
 	_, err := DB.Exec(
-		"INSERT INTO locations (trip_id, latitude, longitude, timestamp) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
-		location.TripID, location.Latitude, location.Longitude,
+		"INSERT INTO locations (trip_id, latitude, longitude, in_geofence, timestamp) VALUES (?, ?, ?, ?,CURRENT_TIMESTAMP)",
+		location.TripID, location.Latitude, location.Longitude, location.InGeofence,
 	)
 	if err != nil {
 		logger.Log.Error().Err(err).Interface("location", location).Msg("Error saving location to database")

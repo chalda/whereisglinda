@@ -34,7 +34,7 @@ export const apiFetch = async <T>(endpoint: string, apiKey?: string, options?: a
  * @returns The list of locations
  */
 export const fetchLocations = async (): Promise<Location[]> => {
-  return apiFetch<Location[]>('/locations'); // No API key required
+  return apiFetch<Location[]>('/trip/active/locations'); // No API key required
 };
 
 /**

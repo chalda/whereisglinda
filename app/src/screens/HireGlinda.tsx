@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 
 const HireGlinda = () => {
   return (
@@ -7,11 +7,14 @@ const HireGlinda = () => {
       <Text style={styles.title}>Hire Glinda!</Text>
       <Text style={styles.description}>Unfortunately Glinda doesn't run on dreams alone.</Text>
       <Text style={styles.description}>Hire the bus for your next party, parade, or pageant! </Text>
-      <Text style={styles.description}>
-        <a href="https://www.instagram.com/glindathegoodbus/">
-          Reach out on Instagram to book your ride.
-        </a>
-      </Text>
+
+      <View>
+        <TouchableOpacity
+          onPress={() => Linking.openURL('https://www.instagram.com/glindathegoodbus/')}>
+          <Text style={{ color: 'blue' }}>Reach out on Instagram to book your ride</Text>
+        </TouchableOpacity>
+      </View>
+
       <Text style={styles.description}>
         Whatever it is you are scheming, a party bus is the perfect entrance or getaway vehicle.
       </Text>

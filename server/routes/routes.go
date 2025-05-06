@@ -34,6 +34,7 @@ func SetupRoutes() *mux.Router {
 	router.HandleFunc("/trip/{tripID}", handlers.UpdateTrip).Methods("PUT")  // End a trip by ID
 	router.HandleFunc("/trip/end", handlers.EndTrip).Methods("POST")         // End a trip
 	router.HandleFunc("/trip/active", handlers.GetActiveTrip).Methods("GET") // Fetch active trip
+	router.HandleFunc("/trip/active/locations", handlers.GetLatestTripLocations).Methods("GET") // Fetch active trip
 
 	// API Key Validation
 	router.HandleFunc("/validate", handlers.ValidateKey).Methods("POST") // Validate API key

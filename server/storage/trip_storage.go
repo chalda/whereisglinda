@@ -160,8 +160,9 @@ func GetLocationsForTripFiltered(tripID int, after *time.Time) ([]models.TripLoc
 		query += " AND timestamp > ?"
 		args = append(args, *after)
 	}
+	fmt.Println(after)
 
-	query += " ORDER BY timestamp"
+	query += " ORDER BY timestamp desc"
 	rows, err := DB.Query(query, args...)
 	if err != nil {
 		logger.Log.Error().Err(err).Int("tripID", tripID).Interface("after", after).Msg("Error querying filtered locations for trip")

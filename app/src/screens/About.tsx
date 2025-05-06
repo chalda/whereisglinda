@@ -1,7 +1,7 @@
 import React from 'react';
 import { RouteProp, useRoute } from '@react-navigation/native';
 import { ScreenContent } from '../components/ScreenContent';
-import { StyleSheet, View, Text } from 'react-native';
+import { StyleSheet, View, Text, Linking, TouchableOpacity } from 'react-native';
 
 import { HeaderNavigatorParamList } from '../navigation';
 
@@ -22,12 +22,17 @@ const About = () => {
       <Text style={styles.title}>Michele Joni Lapidos</Text>
       <Text style={styles.description}>Bus mama.</Text>
       <Text style={styles.title}>App</Text>
-      <Text style={styles.description}>
-        App developer: <a href="https://github.com/chalda">Alex</a>
-      </Text>
-      <Text style={styles.description}>
-        <a href="https://github.com/chalda/whereisglinda">App source code on github</a>
-      </Text>
+      <View>
+        <TouchableOpacity onPress={() => Linking.openURL('https://github.com/chalda')}>
+          <Text style={{ color: 'blue' }}>App developer: Alex C.</Text>
+        </TouchableOpacity>
+      </View>
+      <View>
+        <TouchableOpacity
+          onPress={() => Linking.openURL('https://github.com/chalda/whereisglinda')}>
+          <Text style={{ color: 'blue' }}>App source code</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
