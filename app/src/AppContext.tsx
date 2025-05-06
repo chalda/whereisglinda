@@ -45,16 +45,28 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [locationTrackerForTripId, setLocationTrackerForTripId] = useState(null);
 
   useEffect(() => {
+    let retryTimeout: NodeJS.Timeout | null = null;
+    let cancelled = false;
+
     const fetchGeofenceData = async () => {
       try {
         const geofenceData = await fetchGeofence();
         setGeofence(geofenceData);
+        cancelled = true; // Stop retrying after success
       } catch (err) {
         console.error('Failed to fetch the latest geofence:', err.message);
+        if (!cancelled) {
+          retryTimeout = setTimeout(fetchGeofenceData, 60000); // Retry after 60 seconds
+        }
       }
     };
 
     fetchGeofenceData();
+
+    return () => {
+      cancelled = true;
+      if (retryTimeout) clearTimeout(retryTimeout);
+    };
   }, []); // Fetch geofence only once when the component mounts
 
   useEffect(() => {
