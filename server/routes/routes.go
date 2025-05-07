@@ -31,9 +31,9 @@ func SetupRoutes() *mux.Router {
 	// Trip Endpoints
 	router.HandleFunc("/trip", handlers.StartNewTrip).Methods("POST") // Create a new trip
 	// @TODO replace /end with update active=0 /trip/{id}/
-	router.HandleFunc("/trip/{tripID}", handlers.UpdateTrip).Methods("PUT")  // End a trip by ID
-	router.HandleFunc("/trip/end", handlers.EndTrip).Methods("POST")         // End a trip
-	router.HandleFunc("/trip/active", handlers.GetActiveTrip).Methods("GET") // Fetch active trip
+	router.HandleFunc("/trip/{tripID}", handlers.UpdateTrip).Methods("PUT")                     // End a trip by ID
+	router.HandleFunc("/trip/end", handlers.EndTrip).Methods("POST")                            // End a trip
+	router.HandleFunc("/trip/active", handlers.GetActiveTrip).Methods("GET")                    // Fetch active trip
 	router.HandleFunc("/trip/active/locations", handlers.GetLatestTripLocations).Methods("GET") // Fetch active trip
 
 	// API Key Validation
@@ -69,15 +69,15 @@ func corsHeadersMiddleware(next http.Handler) http.Handler {
 			muxHandlers.CORS(
 				muxHandlers.AllowedOrigins([]string{"*"}),
 				muxHandlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
-				muxHandlers.AllowedHeaders([]string{"Content-Type", "Authorization", "Accept", "Origin"}),
-				muxHandlers.ExposedHeaders([]string{"Content-Length"}),
+				muxHandlers.AllowedHeaders([]string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "X-User-Agent", "Origin"}),
+				muxHandlers.ExposedHeaders([]string{"Content-Length", "Transfer-Encoding", "Connection", "Cache-Control", "Content-Type"}),
 			)(next).ServeHTTP(w, r)
 		} else {
 			muxHandlers.CORS(
 				muxHandlers.AllowedOrigins([]string{os.Getenv("DOMAIN")}),
 				muxHandlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"}),
-				muxHandlers.AllowedHeaders([]string{"Content-Type", "Authorization", "Accept", "Origin"}),
-				muxHandlers.ExposedHeaders([]string{"Content-Length"}),
+				muxHandlers.AllowedHeaders([]string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization", "X-User-Agent", "Origin"}),
+				muxHandlers.ExposedHeaders([]string{"Content-Length", "Transfer-Encoding", "Connection", "Cache-Control", "Content-Type"}),
 			)(next).ServeHTTP(w, r)
 		}
 	})
@@ -103,9 +103,9 @@ func StartServer() {
 	server := &http.Server{
 		Addr:         ":8080",
 		Handler:      corsRouter,
-		ReadTimeout:  30 * time.Second,
-		WriteTimeout: 30 * time.Second,
-		IdleTimeout:  90 * time.Second,
+		ReadTimeout:  300 * time.Second,
+		WriteTimeout: 0,
+		IdleTimeout:  0,
 	}
 
 	go func() {

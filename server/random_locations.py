@@ -56,7 +56,7 @@ while True:
                 print(f"Error updating location: {location_response.text}")
 
             # Wait 15 seconds before sending next request
-            time.sleep(3)
+            time.sleep(7)
     except:
         print("error")
     

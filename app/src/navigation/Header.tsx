@@ -55,9 +55,11 @@ const Header = ({ navigation, state }) => {
   // }, [spinVelocity]);
 
   useEffect(() => {
-    animateWheels(10000, 1);
-    animateBackground(10000, -SW);
-  }, [activeTrip]);
+    if (activeTrip?.active && activeTrip?.lastUpdate) {
+      animateWheels(10000, 1);
+      animateBackground(10000, -SW);
+    }
+  }, [activeTrip?.active, activeTrip?.lastUpdate]);
 
   // const boostSpin = () => {
   //   setSpinVelocity(0.02);

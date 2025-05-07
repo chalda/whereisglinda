@@ -48,13 +48,13 @@ func AddLocation(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	if !location.InGeofence {
-		locationChan <- location
-		// select {
-		// case locationChan <- location:
-		// 	logger.Log.Debug().Interface("location", location).Msg("Location pushed to channel")
-		// default:
-		// 	logger.Log.Error().Msg("Location channel is full, dropping location")
-		// }
+		// Non-blocking send to channel
+		select {
+		case locationChan <- location:
+			logger.Log.Debug().Interface("location", location).Msg("Location pushed to channel")
+		default:
+			logger.Log.Error().Msg("Location channel is full, dropping location")
+		}
 	}
 }
 
@@ -74,9 +74,6 @@ func SubscribeLocation(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 
-	// Set SSE retry interval to 3 seconds (client will retry after disconnect)
-	fmt.Fprintf(w, "retry: 3000\n\n")
-
 	if r.Method == http.MethodOptions {
 		w.WriteHeader(http.StatusOK)
 		return
@@ -89,9 +86,16 @@ func SubscribeLocation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Set SSE retry interval to 5 seconds (client will retry after disconnect)
+	fmt.Fprintf(w, "retry: 5000\n\n")
+	flusher.Flush()
+
 	notify := w.(http.CloseNotifier).CloseNotify()
-	pingTicker := time.NewTicker(5 * time.Second)
+	// Set ping interval to less than server's WriteTimeout (30s)
+	pingTicker := time.NewTicker(10 * time.Second)
 	defer pingTicker.Stop()
+
+	logger.Log.Debug().Msg("SSE subscription started")
 
 	for {
 		select {
@@ -99,6 +103,7 @@ func SubscribeLocation(w http.ResponseWriter, r *http.Request) {
 			logger.Log.Debug().Msg("Client disconnected from subscription")
 			return
 		case loc := <-locationChan:
+			logger.Log.Debug().Interface("location", loc).Msg("Received location from channel")
 			data, err := json.Marshal(loc)
 			if err != nil {
 				logger.Log.Error().Err(err).Msg("Error marshaling location data")
@@ -106,12 +111,37 @@ func SubscribeLocation(w http.ResponseWriter, r *http.Request) {
 				flusher.Flush()
 				continue
 			}
-			fmt.Fprintf(w, "data: %s\n\n", data)
+			logger.Log.Debug().Int("data_len", len(data)).Msg("Marshaled location data")
+
+			// Write data event
+			_, writeErr := fmt.Fprintf(w, "data: %s\n\n", data)
+			if writeErr != nil {
+				logger.Log.Error().Err(writeErr).Msg("Error writing data to SSE connection")
+				// Depending on the nature of the write error, you might want to return here
+				// return // Consider returning on write errors
+			} else {
+				logger.Log.Debug().Msg("Successfully wrote data to SSE connection")
+			}
+
+
+			// Flush data
 			flusher.Flush()
+			logger.Log.Debug().Msg("Successfully flushed data to SSE connection")
+
+
 		case <-pingTicker.C:
-			// Send a ping event every 5 seconds to keep the connection alive
-			fmt.Fprintf(w, "event: ping\ndata: {}\n\n")
+			// Send a ping event every 10 seconds to keep the connection alive
+			logger.Log.Debug().Msg("Sending SSE ping event")
+			_, writeErr := fmt.Fprint(w, "event: ping\ndata: {}\n\n")
+			if writeErr != nil {
+				logger.Log.Error().Err(writeErr).Msg("Error writing ping to SSE connection")
+				// Consider returning on write errors
+				// return
+			} else {
+				logger.Log.Debug().Msg("Successfully wrote ping to SSE connection")
+			}
 			flusher.Flush()
+			logger.Log.Debug().Msg("Successfully flushed ping to SSE connection")
 		}
 	}
 }

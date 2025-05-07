@@ -11,6 +11,8 @@ type LocationTrackerProps = {
   activeTripId: number | undefined;
 };
 
+const LOCATION_SEND_INTERVAL = 7000;
+
 const LocationTracker: React.FC<LocationTrackerProps> = ({
   apiKey,
   trackingEnabled,
@@ -65,7 +67,7 @@ const LocationTracker: React.FC<LocationTrackerProps> = ({
       } catch (err) {
         console.error('Failed to send location:', err.message);
       }
-    }, 5000) as unknown as number;
+    }, LOCATION_SEND_INTERVAL) as unknown as number;
   }, [apiKey, activeTripId, requestLocationPermission]);
 
   const stopLocationTracking = useCallback(() => {

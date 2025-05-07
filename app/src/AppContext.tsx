@@ -7,7 +7,7 @@ import useSubscribe from './utils/useSubscribe';
 import LocationTracker from './components/LocationTracker';
 
 const LOCATIONS_UPDATE_INTERVAL = 60 * 1000; // 30 seconds
-const ACTIVE_TRIP_UPDATE_INTERVAL = 30 * 1000; // 30 seconds
+const ACTIVE_TRIP_UPDATE_INTERVAL = 20 * 1000; // 30 seconds
 
 export interface AppContextProps {
   apiKey: string;
@@ -70,22 +70,25 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   }, []); // Fetch geofence only once when the component mounts
 
   useEffect(() => {
-    let everyOther = 1;
+    let everyNth = 3; //fetch locations immediately and then every 3rd time
+
     const fetchActiveTripData = async () => {
       try {
         const trip = await fetchActiveTrip(apiKey);
         setActiveTrip(trip);
 
         // Fetch locations if there is an active trip
-        if (trip) {
-          everyOther = everyOther % 2;
-          if (everyOther) {
+        if (trip && trip?.active) {
+          if (everyNth % 3 === 0) {
             const tripLocations = await fetchLocations();
             setLocations(tripLocations);
+            everyNth = 1; //reset
+          } else {
+            everyNth++;
           }
-          everyOther++;
         } else {
           setLocations([]);
+          everyNth = 3; //reset so if new trip starts, locations are fetched immediately
         }
       } catch (err) {
         console.error('Failed to fetch active trip or locations:', err.message);
@@ -101,20 +104,20 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    const debounceSetSubscription = debounce((enabled: boolean) => {
-      setLocationSubscriptionEnabled(enabled);
-    }, 1000); // Debounce to 1 second
+    // const debounceSetSubscription = debounce((enabled: boolean) => {
+    //   setLocationSubscriptionEnabled(enabled);
+    // }, 1000); // Debounce to 1 second
 
-    if (activeTrip?.tripId) {
-      debounceSetSubscription(true);
+    if (activeTrip?.tripId && activeTrip?.active) {
+      setLocationSubscriptionEnabled(true);
     } else {
-      debounceSetSubscription(false);
+      setLocationSubscriptionEnabled(false);
     }
 
-    return () => {
-      debounceSetSubscription.cancel(); // Cancel debounce on cleanup
-    };
-  }, [activeTrip]);
+    // return () => {
+    //   debounceSetSubscription.cancel(); // Cancel debounce on cleanup
+    // };
+  }, [activeTrip?.tripId, activeTrip?.active]);
 
   useSubscribe({
     onLocationUpdate: (location: TripLocation) => {

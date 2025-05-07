@@ -14,9 +14,10 @@ type UseSubscribeProps = {
 
 const useSubscribe = ({ onLocationUpdate, enabled }: UseSubscribeProps) => {
   const eventSourceRef = useRef<EventSource | null>(null);
+  let retry = 0;
 
   useEffect(() => {
-    if (enabled && !eventSourceRef.current) {
+    if (enabled && eventSourceRef.current === null) {
       const EventSourceImpl =
         typeof window !== 'undefined' && 'EventSource' in window
           ? window.EventSource
@@ -32,15 +33,31 @@ const useSubscribe = ({ onLocationUpdate, enabled }: UseSubscribeProps) => {
       es.addEventListener('message', (event) => {
         try {
           const location: TripLocation = JSON.parse(event?.data);
-          onLocationUpdate(location);
+          console.log(location);
+          if (location) {
+            onLocationUpdate(location); // @tslint-ignore-line
+          }
         } catch (err) {
           console.error('Failed to parse location update:', err);
         }
       });
 
+      es.addEventListener('ping', (event) => {
+        console.log('ping');
+      });
+
       es.addEventListener('error', (err) => {
         console.error('Error with /subscribe connection:', err);
         es.close();
+        if (eventSourceRef.current.removeAllEventListeners)
+          eventSourceRef.current.removeAllEventListeners();
+        eventSourceRef.current = null;
+        console.log('Close SSE connection.');
+
+        console.log('Cleaned up SSE connection.');
+        if (enabled) {
+          retry++;
+        }
       });
 
       es.addEventListener('close', () => {
@@ -59,7 +76,7 @@ const useSubscribe = ({ onLocationUpdate, enabled }: UseSubscribeProps) => {
         console.log('Cleaned up SSE connection.');
       }
     };
-  }, [enabled]); // Only reinitialize when `enabled` changes
+  }, [enabled, retry]); // Only reinitialize when `enabled` changes
 };
 
 export default useSubscribe;
