@@ -34,7 +34,7 @@ func AddLocation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(storage.HOME_GEOFENCE) > 0 {
-		location.InGeofence = storage.PointInPolygon(location.Location, storage.HOME_GEOFENCE)
+		location.InGeofence = models.PointInPolygon(location.Location, storage.HOME_GEOFENCE)
 	}
 
 	// Save location to the database

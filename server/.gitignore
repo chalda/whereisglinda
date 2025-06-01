@@ -13,8 +13,8 @@ web-build/
 .env
 scaffold.sh
 *.db
-lib/python*
-bin/
+dummy_client/lib/
+dummy_client/bin/
 pyvenv.cfg
 ctx.txt
 context.txt

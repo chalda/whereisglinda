@@ -34,9 +34,10 @@ func InitDB() {
 		{Latitude: 40.7040, Longitude: -73.9280},
 		{Latitude: 40.7060, Longitude: -73.9320},
 	}
-	SaveGeofence(anotherGeofence)
+	expGeofence := models.ExpandPolygon(anotherGeofence, 300)
+	SaveGeofence(anotherGeofence, expGeofence)
 
-	HOME_GEOFENCE, err = GetLatestGeofence()
+	HOME_GEOFENCE, HOME_GEOFENCE_EXP, err = GetLatestGeofence()
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("Failed to get geofence")
 		panic(err)
@@ -103,7 +104,9 @@ func createTables() {
 		 id INTEGER PRIMARY KEY AUTOINCREMENT,
 		 geofence_id INTEGER NOT NULL,
 		 latitude REAL NOT NULL,
-		 longitude REAL NOT NULL
+		 longitude REAL NOT NULL,
+		 exp_latitude REAL,
+		 exp_longitude REAL
 	 )
  `)
 	if err != nil {

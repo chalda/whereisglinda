@@ -47,20 +47,3 @@ func GetLocationsForTrip(tripID int) ([]models.TripLocation, error) {
 	logger.Log.Debug().Int("tripID", tripID).Int("count", len(locations)).Msg("Locations retrieved successfully")
 	return locations, nil
 }
-
-func PointInPolygon(p models.Location, polygon []models.Location) bool {
-	n := len(polygon)
-	inside := false
-	j := n - 1
-	for i := 0; i < n; i++ {
-		xi, yi := polygon[i].Latitude, polygon[i].Longitude
-		xj, yj := polygon[j].Latitude, polygon[j].Longitude
-		intersect := ((yi > p.Longitude) != (yj > p.Longitude)) &&
-			(p.Latitude < (xj-xi)*(p.Longitude-yi)/(yj-yi)+xi)
-		if intersect {
-			inside = !inside
-		}
-		j = i
-	}
-	return inside
-}

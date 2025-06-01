@@ -30,7 +30,7 @@ func PopulateDummyData() {
 		{Latitude: 40.6874401, Longitude: -73.9363585},
 		{Latitude: 40.6888631, Longitude: -73.9359374},
 	}
-	if err := SaveGeofence(dummyGeofence); err != nil {
+	if err := SaveGeofence(dummyGeofence, nil); err != nil {
 		log.Printf("Failed to insert dummy geofence: %v", err)
 	}
 
@@ -41,7 +41,7 @@ func PopulateDummyData() {
 		{Latitude: 40.7040, Longitude: -73.9280},
 		{Latitude: 40.7060, Longitude: -73.9320},
 	}
-	if err := SaveGeofence(anotherGeofence); err != nil {
+	if err := SaveGeofence(anotherGeofence, models.ExpandPolygon(anotherGeofence, 5)); err != nil {
 		log.Printf("Failed to insert another dummy geofence: %v", err)
 	}
 
